@@ -1,0 +1,41 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "backend/index.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "luxe_fashion/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "luxe_fashion/dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/backend/index.js"
+    },
+    {
+      "src": "/static/(.*)",
+      "dest": "/luxe_fashion/dist/static/$1"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "/luxe_fashion/dist/assets/$1"
+    },
+    {
+      "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))",
+      "dest": "/luxe_fashion/dist/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/luxe_fashion/dist/index.html"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}
