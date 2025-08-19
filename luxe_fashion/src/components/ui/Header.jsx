@@ -5,14 +5,16 @@ import Button from './Button';
 import { useUser } from '../../context/UserContext';
 import SearchModal from './SearchModal';
 import { useCart } from '../../context/CartContext';
+import { apiFetch } from '../../utils/api';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const location = useLocation();
-  const { user, logout } = useUser();
+  const { user, logout, backendUser } = useUser();
   const navigate = useNavigate();
   const { cart, clearCart } = useCart();
 
@@ -41,6 +43,25 @@ const Header = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isUserMenuOpen]);
+
+  // Check admin access from backend user or admin cookie
+  useEffect(() => {
+    let cancelled = false;
+    const checkAdmin = async () => {
+      if (backendUser && backendUser.isAdmin) {
+        if (!cancelled) setIsAdmin(true);
+        return;
+      }
+      try {
+        const res = await apiFetch('/user/getadmin');
+        if (!cancelled) setIsAdmin(!!res && res.role === 'admin');
+      } catch (e) {
+        if (!cancelled) setIsAdmin(false);
+      }
+    };
+    checkAdmin();
+    return () => { cancelled = true; };
+  }, [backendUser]);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -169,6 +190,20 @@ const Header = () => {
                     <div className="px-4 py-2 border-b border-border">
                       <div className="text-sm font-medium text-foreground">{user.email}</div>
                     </div>
+                    {isAdmin && (
+                      <button
+                        onClick={() => {
+                          navigate('/admin');
+                          closeUserMenu();
+                        }}
+                        className="w-full px-4 py-2 text-left text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors duration-200"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <Icon name="Shield" size={16} />
+                          <span>Admin Panel</span>
+                        </div>
+                      </button>
+                    )}
                     <button
                       onClick={() => {
                         navigate('/profile');
@@ -209,6 +244,20 @@ const Header = () => {
                 </Button>
                 {isUserMenuOpen && (
                   <div className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-lg shadow-lg py-2 z-50">
+                    {isAdmin && (
+                      <button
+                        onClick={() => {
+                          navigate('/admin');
+                          closeUserMenu();
+                        }}
+                        className="w-full px-4 py-2 text-left text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors duration-200"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <Icon name="Shield" size={16} />
+                          <span>Admin Panel</span>
+                        </div>
+                      </button>
+                    )}
                     <button
                       onClick={() => {
                         navigate('/profile');
@@ -321,6 +370,22 @@ const Header = () => {
                 </Button>
                 
               </div>
+              {isAdmin && (
+                <div className="mt-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center space-x-2 text-muted-foreground hover:text-foreground"
+                    onClick={() => {
+                      navigate('/admin');
+                      closeMenu();
+                    }}
+                  >
+                    <Icon name="Shield" size={18} />
+                    <span>Admin Panel</span>
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>
