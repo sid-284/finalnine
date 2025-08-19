@@ -19,17 +19,11 @@ let app = express()
 app.use(cookieParser())
 // Trust proxy so "secure" cookies work behind proxies (e.g., Render, Vercel)
 app.set('trust proxy', 1)
-// Configure CORS origins via environment variable (mandatory)
-// Use comma-separated values in CORS_ORIGINS, e.g.:
-// CORS_ORIGINS=https://app.example.com,https://admin.example.com
-const corsOriginsEnv = process.env.CORS_ORIGINS
-if (!corsOriginsEnv) {
-  throw new Error('CORS_ORIGINS is not configured. Please set it in your environment.');
-}
-const allowedCorsOrigins = corsOriginsEnv
-  .split(',')
-  .map(origin => origin.trim())
-  .filter(Boolean)
+// Hardcoded CORS origins for production
+const allowedCorsOrigins = [
+  "https://www.9twoofficial.com",
+  "https://finalnine.vercel.app"
+]
 
 app.use(cors({
   origin: allowedCorsOrigins,
