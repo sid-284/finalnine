@@ -143,7 +143,7 @@ app.use((error, req, res, next) => {
 });
 
 // 404 handler for unmatched routes
-app.use('*', (req, res) => {
+app.use((req, res) => {
   res.status(404).json({ 
     message: `Route ${req.originalUrl} not found` 
   });
