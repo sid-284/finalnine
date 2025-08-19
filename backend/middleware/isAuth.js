@@ -1,6 +1,5 @@
 import jwt from 'jsonwebtoken'
 
-
 const isAuth = async (req,res,next) => {
     try {
         let token = req.cookies?.token
@@ -19,8 +18,14 @@ const isAuth = async (req,res,next) => {
             return res.status(401).json({message:"User does not have token"})
         }
         
-        let verifyToken = jwt.verify(token,process.env.JWT_SECRET)
-        console.log('isAuth - Verified token:', verifyToken);
+        let verifyToken
+        try {
+            verifyToken = jwt.verify(token, process.env.JWT_SECRET)
+            console.log('isAuth - Verified token:', verifyToken);
+        } catch (jwtError) {
+            console.log('isAuth - JWT verification failed:', jwtError.message)
+            return res.status(401).json({message:"Invalid or expired token"})
+        }
 
         if(!verifyToken){
             return res.status(401).json({message:"User does not have a valid token"})
@@ -34,15 +39,15 @@ const isAuth = async (req,res,next) => {
             req.adminEmail = verifyToken.email;
             console.log('isAuth - Admin email set:', req.adminEmail);
         } else {
-            return res.status(401).json({message:"Invalid token format"})
+            console.log('isAuth - Token missing both userId and email:', verifyToken)
+            return res.status(401).json({message:"Invalid token format - missing user identification"})
         }
         
         next()
 
     } catch (error) {
          console.log("isAuth error:", error.message)
-    return res.status(401).json({message:`Authentication error: ${error.message}`})
-        
+         return res.status(401).json({message:`Authentication error: ${error.message}`})
     }
 }
 

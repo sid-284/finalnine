@@ -64,6 +64,10 @@ const PaymentSection = ({ onPaymentSubmit, orderTotal, cartItems, shippingAddres
     setErrorMsg('');
     if (!validatePayment()) return;
     setLoading(true);
+    
+    // Debug: Check if user is authenticated
+    console.log('PaymentSection - Starting payment process...');
+    
     // Razorpay integration
     try {
       console.log('Loading Razorpay script...');
@@ -71,25 +75,26 @@ const PaymentSection = ({ onPaymentSubmit, orderTotal, cartItems, shippingAddres
       console.log('Razorpay script loaded successfully');
       
       console.log('Creating order on backend...');
-      console.log('Order data:', {
+      const orderData = {
         items: cartItems,
         amount: orderTotal,
         address: shippingAddress,
         paymentMethod: paymentMethod
-      });
+      };
+      console.log('Order data being sent:', orderData);
       
       // Create order on backend
       const order = await apiFetch('/order/razorpay', {
         method: 'POST',
-        body: JSON.stringify({
-          items: cartItems,
-          amount: orderTotal,
-          address: shippingAddress,
-          paymentMethod: paymentMethod
-        }),
+        body: JSON.stringify(orderData),
       });
       
-      console.log('Backend order created:', order);
+      console.log('Backend order created successfully:', order);
+      
+      if (!order.id) {
+        throw new Error('Backend order creation failed - no order ID returned');
+      }
+      
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_YOUR_KEY_ID', // Use environment variable
         amount: Math.round(orderTotal * 100), // Convert to paise and ensure it's an integer

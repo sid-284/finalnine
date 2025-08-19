@@ -5,17 +5,37 @@ import dotenv from 'dotenv'
 dotenv.config()
 const currency = 'inr'
 
+// Validate Razorpay configuration
+if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+    console.error('Razorpay configuration missing. Please check RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET environment variables.');
+}
+
 const razorpayInstance = new razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET
 })
 
+console.log('Razorpay instance created with key_id:', process.env.RAZORPAY_KEY_ID ? 'Present' : 'Missing');
+
 // for User
 export const placeOrder = async (req,res) => {
-
      try {
+         // Validate userId is present
+         if (!req.userId) {
+             console.log('placeOrder - Missing userId in request');
+             return res.status(401).json({message: 'User not authenticated properly'});
+         }
+         
          const {items , amount , address} = req.body;
          const userId = req.userId;
+         
+         // Validate required fields
+         if (!items || !amount || !address) {
+             return res.status(400).json({message: 'Missing required fields: items, amount, or address'});
+         }
+         
+         console.log('placeOrder - Creating order for userId:', userId);
+         
          const orderData = {
             items,
             amount,
@@ -28,24 +48,38 @@ export const placeOrder = async (req,res) => {
 
          const newOrder = new Order(orderData)
          await newOrder.save()
+         
+         console.log('placeOrder - Order saved successfully:', newOrder._id);
 
          await User.findByIdAndUpdate(userId,{cartData:{}})
 
-         return res.status(201).json({message:'Order Place'})
+         return res.status(201).json({message:'Order Placed', orderId: newOrder._id})
     } catch (error) {
-        console.log(error)
+        console.log('placeOrder error:', error.message)
         res.status(500).json({message:'Order Place error'})
     }
-    
 }
 
 
 export const placeOrderRazorpay = async (req,res) => {
     try {
+        // Validate userId is present
+        if (!req.userId) {
+            console.log('placeOrderRazorpay - Missing userId in request');
+            return res.status(401).json({message: 'User not authenticated properly'});
+        }
         
-         const {items , amount , address} = req.body;
-         const userId = req.userId;
-         const orderData = {
+        const {items , amount , address} = req.body;
+        const userId = req.userId;
+        
+        // Validate required fields
+        if (!items || !amount || !address) {
+            return res.status(400).json({message: 'Missing required fields: items, amount, or address'});
+        }
+        
+        console.log('placeOrderRazorpay - Creating order for userId:', userId);
+        
+        const orderData = {
             items,
             amount,
             userId,
@@ -53,12 +87,14 @@ export const placeOrderRazorpay = async (req,res) => {
             paymentMethod:'Razorpay',
             payment:false,
             date: Date.now()
-         }
+        }
 
-         const newOrder = new Order(orderData)
-         await newOrder.save()
+        const newOrder = new Order(orderData)
+        await newOrder.save()
+        
+        console.log('placeOrderRazorpay - Order saved successfully:', newOrder._id);
 
-         const options = {
+        const options = {
             amount: Math.round(amount * 100), // Ensure amount is in paise and is an integer
             currency: currency.toUpperCase(),
             receipt: newOrder._id.toString(),
@@ -67,17 +103,25 @@ export const placeOrderRazorpay = async (req,res) => {
                 order_id: newOrder._id.toString(),
                 user_id: userId.toString()
             }
-         }
-         
-         try {
+        }
+        
+        try {
             const razorpayOrder = await razorpayInstance.orders.create(options);
+            console.log('placeOrderRazorpay - Razorpay order created:', razorpayOrder.id);
             res.status(200).json(razorpayOrder);
-         } catch (razorpayError) {
+        } catch (razorpayError) {
             console.log('Razorpay order creation error:', razorpayError);
+            // Delete the order we created since Razorpay failed
+            try {
+                await Order.findByIdAndDelete(newOrder._id);
+                console.log('placeOrderRazorpay - Cleaned up failed order');
+            } catch (cleanupError) {
+                console.log('placeOrderRazorpay - Failed to cleanup order:', cleanupError.message);
+            }
             res.status(500).json({ message: 'Failed to create payment order' });
-         }
+        }
     } catch (error) {
-        console.log(error)
+        console.log('placeOrderRazorpay - General error:', error.message);
         res.status(500).json({message: error.message})
     }
 }
@@ -85,25 +129,41 @@ export const placeOrderRazorpay = async (req,res) => {
 
 export const verifyRazorpay = async (req,res) =>{
     try {
+        // Validate userId is present
+        if (!req.userId) {
+            console.log('verifyRazorpay - Missing userId in request');
+            return res.status(401).json({message: 'User not authenticated properly'});
+        }
+        
         const userId = req.userId
         const {razorpay_order_id} = req.body
         
+        if (!razorpay_order_id) {
+            return res.status(400).json({message: 'Razorpay order ID is required'});
+        }
+        
+        console.log('verifyRazorpay - Verifying payment for userId:', userId, 'orderId:', razorpay_order_id);
+        
         try {
             const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id)
+            console.log('verifyRazorpay - Razorpay order info:', orderInfo.status);
+            
             if(orderInfo.status === 'paid'){
                 await Order.findByIdAndUpdate(orderInfo.receipt,{payment:true});
                 await User.findByIdAndUpdate(userId , {cartData:{}})
+                console.log('verifyRazorpay - Payment verified successfully');
                 res.status(200).json({message:'Payment Successful'})
             }
             else{
-                res.status(400).json({message:'Payment Failed'})
+                console.log('verifyRazorpay - Payment not completed, status:', orderInfo.status);
+                res.status(400).json({message:'Payment Failed - Payment not completed'})
             }
         } catch (razorpayError) {
             console.log('Razorpay verification error:', razorpayError);
             res.status(500).json({ message: 'Payment verification failed' });
         }
     } catch (error) {
-        console.log(error)
+        console.log('verifyRazorpay - General error:', error.message)
          res.status(500).json({message: error.message})
     }
 }
@@ -115,14 +175,23 @@ export const verifyRazorpay = async (req,res) =>{
 
 export const userOrders = async (req,res) => {
       try {
+        // Validate userId is present
+        if (!req.userId) {
+            console.log('userOrders - Missing userId in request');
+            return res.status(401).json({message: 'User not authenticated properly'});
+        }
+        
         const userId = req.userId;
+        console.log('userOrders - Fetching orders for userId:', userId);
+        
         const orders = await Order.find({userId})
+        console.log('userOrders - Found orders count:', orders.length);
+        
         return res.status(200).json(orders)
     } catch (error) {
-        console.log(error)
+        console.log('userOrders error:', error.message)
         return res.status(500).json({message:"userOrders error"})
     }
-    
 }
 
 

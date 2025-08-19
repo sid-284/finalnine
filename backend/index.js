@@ -11,6 +11,7 @@ import productRoutes from './routes/productRoutes.js'
 import cartRoutes from './routes/cartRoutes.js'
 import orderRoutes from './routes/orderRoutes.js'
 import { generalLimiter } from './middleware/rateLimiter.js'
+import isAuth from './middleware/isAuth.js'
 
 let port = process.env.PORT || 8000
 
@@ -81,17 +82,79 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
+// Test authentication endpoint
+app.get('/api/test-auth', isAuth, (req, res) => {
+  try {
+    res.json({ 
+      message: 'Authentication successful',
+      userId: req.userId,
+      adminEmail: req.adminEmail,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Authentication test failed',
+      error: error.message 
+    });
+  }
+});
+
 app.use("/api/auth", authRoutes)
 app.use("/api/user", userRoutes)
 app.use("/api/product", productRoutes)
 app.use("/api/cart", cartRoutes)
 app.use("/api/order", orderRoutes)
 
+// Global error handling middleware
+app.use((error, req, res, next) => {
+  console.error('Global error handler caught:', error);
+  
+  // Handle specific error types
+  if (error.name === 'ValidationError') {
+    return res.status(400).json({ 
+      message: 'Validation Error', 
+      details: error.message 
+    });
+  }
+  
+  if (error.name === 'CastError') {
+    return res.status(400).json({ 
+      message: 'Invalid ID format' 
+    });
+  }
+  
+  if (error.name === 'JsonWebTokenError') {
+    return res.status(401).json({ 
+      message: 'Invalid token' 
+    });
+  }
+  
+  if (error.name === 'TokenExpiredError') {
+    return res.status(401).json({ 
+      message: 'Token expired' 
+    });
+  }
+  
+  // Default error response
+  res.status(500).json({ 
+    message: 'Internal server error',
+    error: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
+  });
+});
 
-
+// 404 handler for unmatched routes
+app.use('*', (req, res) => {
+  res.status(404).json({ 
+    message: `Route ${req.originalUrl} not found` 
+  });
+});
 
 app.listen(port,()=>{
     console.log("Hello From Server")
+    console.log(`Server running on port ${port}`)
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`)
+    console.log(`Database: ${process.env.MONGODB_URI ? 'Configured' : 'Not configured'}`)
+    console.log(`Razorpay: ${process.env.RAZORPAY_KEY_ID ? 'Configured' : 'Not configured'}`)
     connectDb()
 })
 
