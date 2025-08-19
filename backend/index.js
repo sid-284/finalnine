@@ -17,6 +17,8 @@ let port = process.env.PORT || 8000
 let app = express()
 
 app.use(cookieParser())
+// Trust proxy so "secure" cookies work behind proxies (e.g., Render, Vercel)
+app.set('trust proxy', 1)
 // Configure CORS origins via environment variable (mandatory)
 // Use comma-separated values in CORS_ORIGINS, e.g.:
 // CORS_ORIGINS=https://app.example.com,https://admin.example.com

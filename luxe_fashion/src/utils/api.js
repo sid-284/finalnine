@@ -21,6 +21,14 @@ export async function apiFetch(endpoint, options = {}) {
       ...headers,
       ...(options.headers || {}),
     };
+    
+    // Fallback: attach Authorization bearer if we have an admin token
+    try {
+      const adminToken = localStorage.getItem('adminToken');
+      if (adminToken && !headers['Authorization']) {
+        headers['Authorization'] = `Bearer ${adminToken}`;
+      }
+    } catch {}
 
     const response = await fetch(url, {
       ...options,

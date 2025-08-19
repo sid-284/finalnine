@@ -83,6 +83,10 @@ const AdminPanel = () => {
       console.log('Admin login response:', response);
       setIsAdminLoggedIn(true);
       setSuccess('Admin login successful!');
+      // Store token as fallback for Authorization header when cookies aren't sent
+      if (response?.token) {
+        localStorage.setItem('adminToken', response.token);
+      }
     } catch (err) {
       console.error('Admin login error:', err);
       setError('Invalid admin credentials');
@@ -103,6 +107,7 @@ const AdminPanel = () => {
     setAdminForm({ email: '', password: '' });
     setSuccess('');
     setError('');
+    localStorage.removeItem('adminToken');
   };
 
   const fetchProducts = async () => {

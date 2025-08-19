@@ -30,11 +30,12 @@ export const registration = async (req,res) => {
 
     const user = await User.create({name, email, firebaseUid, avatar});
     let token = await genToken(user._id)
-    res.cookie("token",token,{
-        httpOnly:true,
-        secure:false,
-        sameSite: "Strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
     })
     console.log('User created successfully:', user._id);
     return res.status(201).json(user)
@@ -95,12 +96,13 @@ export const login = async (req,res) => {
         }
         
         let token = await genToken(user._id)
-        res.cookie("token",token,{
-        httpOnly:true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'Strict' : 'Lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000
-    })
+        res.cookie("token", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+          path: '/',
+        })
     console.log('Login successful:', user._id);
     return res.status(201).json(user)
 
@@ -113,7 +115,12 @@ export const login = async (req,res) => {
 }
 export const logOut = async (req,res) => {
 try {
-    res.clearCookie("token")
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+      path: '/',
+    })
     return res.status(200).json({message:"logOut successful"})
 } catch (error) {
     console.error("logOut error:", error)
@@ -148,12 +155,13 @@ export const googleLogin = async (req,res) => {
         }
        
         let token = await genToken(user._id)
-        res.cookie("token",token,{
-        httpOnly:true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'Strict' : 'Lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000
-    })
+        res.cookie("token", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+          path: '/',
+        })
     console.log('Google login successful:', user._id);
     return res.status(200).json(user)
 
@@ -175,11 +183,12 @@ export const adminLogin = async (req,res) => {
         if(email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD){
             console.log('Admin login successful');
             let token = await genToken1(email)
-            res.cookie("token",token,{
-                httpOnly:true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: process.env.NODE_ENV === 'production' ? 'Strict' : 'Lax',
-                maxAge: 1 * 24 * 60 * 60 * 1000
+            res.cookie("token", token, {
+              httpOnly: true,
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+              maxAge: 1 * 24 * 60 * 60 * 1000,
+              path: '/',
             })
             return res.status(200).json({ message: 'Admin login successful', token })
         }
