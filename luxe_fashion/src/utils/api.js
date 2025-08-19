@@ -1,8 +1,11 @@
 // Utility for making API requests
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export async function apiFetch(endpoint, options = {}) {
   try {
+    if (!API_BASE_URL) {
+      throw new Error('API base URL is not configured. Set VITE_API_BASE_URL in your environment.');
+    }
     const url = `${API_BASE_URL}${endpoint}`;
     
     // Prepare headers - don't set Content-Type for FormData

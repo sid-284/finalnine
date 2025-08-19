@@ -17,19 +17,20 @@ let port = process.env.PORT || 8000
 let app = express()
 
 app.use(cookieParser())
+// Configure CORS origins via environment variable (mandatory)
+// Use comma-separated values in CORS_ORIGINS, e.g.:
+// CORS_ORIGINS=https://app.example.com,https://admin.example.com
+const corsOriginsEnv = process.env.CORS_ORIGINS
+if (!corsOriginsEnv) {
+  throw new Error('CORS_ORIGINS is not configured. Please set it in your environment.');
+}
+const allowedCorsOrigins = corsOriginsEnv
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean)
+
 app.use(cors({
-  origin: [
-    "https://luxefashion-blond.vercel.app",
-    "https://*.vercel.app",
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "http://localhost:4028",
-    "http://localhost:3000",
-    "https://accounts.google.com",
-    "https://www.googleapis.com",
-    "https://luxe-fashion-sid284.vercel.app",
-    "https://*.vercel.app"
-  ],
+  origin: allowedCorsOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],

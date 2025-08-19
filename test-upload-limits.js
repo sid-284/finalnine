@@ -4,7 +4,11 @@ import fetch from 'node-fetch';
 import FormData from 'form-data';
 import fs from 'fs';
 
-const BACKEND_URL = 'http://localhost:8000';
+const { BACKEND_URL } = process.env;
+if (!BACKEND_URL) {
+  console.error('BACKEND_URL is not set. Please provide BACKEND_URL in your environment.');
+  process.exit(1);
+}
 
 async function testUploadLimits() {
   console.log('🧪 Testing Upload Limits...\n');

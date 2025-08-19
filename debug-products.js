@@ -2,7 +2,7 @@
 
 import fetch from 'node-fetch';
 
-const BACKEND_URL = 'http://localhost:8000';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
 
 async function debugProducts() {
   console.log('🔍 Debugging Products in Database...\n');
