@@ -8,6 +8,9 @@ export async function apiFetch(endpoint, options = {}) {
     }
     const url = `${API_BASE_URL}${endpoint}`;
     
+    console.log('API Fetch - URL:', url);
+    console.log('API Fetch - Options:', options);
+    
     // Prepare headers - don't set Content-Type for FormData
     let headers = {};
     
@@ -30,11 +33,17 @@ export async function apiFetch(endpoint, options = {}) {
       }
     } catch {}
 
+    console.log('API Fetch - Final headers:', headers);
+    console.log('API Fetch - Credentials:', options.credentials || 'include');
+
     const response = await fetch(url, {
       ...options,
       credentials: 'include', // for cookies/auth
       headers,
     });
+    
+    console.log('API Fetch - Response status:', response.status);
+    console.log('API Fetch - Response headers:', Object.fromEntries(response.headers.entries()));
     
     // Handle different response types
     const contentType = response.headers.get('content-type');

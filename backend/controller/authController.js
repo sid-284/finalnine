@@ -98,10 +98,10 @@ export const login = async (req,res) => {
         let token = await genToken(user._id)
         res.cookie("token", token, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+          secure: true, // Always use secure in production
+          sameSite: 'None', // Required for cross-domain requests
           maxAge: 7 * 24 * 60 * 60 * 1000,
-          path: '/',
+          path: '/'
         })
     console.log('Login successful:', user._id);
     return res.status(201).json(user)
@@ -117,9 +117,9 @@ export const logOut = async (req,res) => {
 try {
     res.clearCookie("token", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
-      path: '/',
+      secure: true, // Always use secure in production
+      sameSite: 'None', // Required for cross-domain requests
+      path: '/'
     })
     return res.status(200).json({message:"logOut successful"})
 } catch (error) {

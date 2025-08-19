@@ -68,17 +68,6 @@ const PaymentSection = ({ onPaymentSubmit, orderTotal, cartItems, shippingAddres
     // Debug: Check if user is authenticated
     console.log('PaymentSection - Starting payment process...');
     
-    // Debug: Check authentication status
-    try {
-      const authCheck = await apiFetch('/user/getcurrentuser');
-      console.log('Authentication check successful:', authCheck);
-    } catch (authError) {
-      console.error('Authentication check failed:', authError);
-      setErrorMsg('Authentication failed. Please log in again.');
-      setLoading(false);
-      return;
-    }
-    
     // Debug: Check Razorpay key configuration
     const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
     console.log('Razorpay key configured:', razorpayKey ? 'Yes' : 'No');
@@ -196,10 +185,18 @@ const PaymentSection = ({ onPaymentSubmit, orderTotal, cartItems, shippingAddres
       }
     } catch (err) {
       console.error('Payment error:', err);
-      if (err.message && err.message.includes('Razorpay')) {
+      
+      // Handle specific error types
+      if (err.status === 401) {
+        setErrorMsg('Authentication failed. Please log in again.');
+      } else if (err.status === 403) {
+        setErrorMsg('Access denied. Please check your permissions.');
+      } else if (err.message && err.message.includes('Razorpay')) {
         setErrorMsg('Payment gateway error. Please check your Razorpay configuration.');
       } else if (err.message && err.message.includes('order')) {
         setErrorMsg('Failed to create payment order. Please try again.');
+      } else if (err.message && err.message.includes('user is not found')) {
+        setErrorMsg('User session expired. Please log in again.');
       } else {
         setErrorMsg('Payment failed. Please try again.');
       }
