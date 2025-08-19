@@ -68,6 +68,26 @@ const PaymentSection = ({ onPaymentSubmit, orderTotal, cartItems, shippingAddres
     // Debug: Check if user is authenticated
     console.log('PaymentSection - Starting payment process...');
     
+    // Debug: Check authentication status
+    try {
+      const authCheck = await apiFetch('/user/getcurrentuser');
+      console.log('Authentication check successful:', authCheck);
+    } catch (authError) {
+      console.error('Authentication check failed:', authError);
+      setErrorMsg('Authentication failed. Please log in again.');
+      setLoading(false);
+      return;
+    }
+    
+    // Debug: Check Razorpay key configuration
+    const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
+    console.log('Razorpay key configured:', razorpayKey ? 'Yes' : 'No');
+    if (!razorpayKey) {
+      setErrorMsg('Razorpay configuration missing. Please check your environment variables.');
+      setLoading(false);
+      return;
+    }
+    
     // Razorpay integration
     try {
       console.log('Loading Razorpay script...');
@@ -84,6 +104,9 @@ const PaymentSection = ({ onPaymentSubmit, orderTotal, cartItems, shippingAddres
       console.log('Order data being sent:', orderData);
       
       // Create order on backend
+      console.log('Making API call to:', '/order/razorpay');
+      console.log('Request body:', JSON.stringify(orderData, null, 2));
+      
       const order = await apiFetch('/order/razorpay', {
         method: 'POST',
         body: JSON.stringify(orderData),
@@ -91,9 +114,13 @@ const PaymentSection = ({ onPaymentSubmit, orderTotal, cartItems, shippingAddres
       
       console.log('Backend order created successfully:', order);
       
-      if (!order.id) {
-        throw new Error('Backend order creation failed - no order ID returned');
+      // Validate the order response structure
+      if (!order || !order.id) {
+        console.error('Invalid order response from backend:', order);
+        throw new Error('Backend order creation failed - invalid response structure');
       }
+      
+      console.log('Using Razorpay order ID:', order.id);
       
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_YOUR_KEY_ID', // Use environment variable
@@ -103,62 +130,9 @@ const PaymentSection = ({ onPaymentSubmit, orderTotal, cartItems, shippingAddres
         description: 'Order Payment',
         order_id: order.id,
         
-        // Enable all payment methods
-        config: {
-          display: {
-            blocks: {
-              banks: {
-                name: "Pay using UPI",
-                instruments: [
-                  {
-                    method: "upi"
-                  }
-                ]
-              },
-              gpay: {
-                name: "Pay using",
-                instruments: [
-                  {
-                    method: "gpay"
-                  }
-                ]
-              },
-              other: {
-                name: "Other Payment methods",
-                instruments: [
-                  {
-                    method: "card"
-                  },
-                  {
-                    method: "netbanking"
-                  },
-                  {
-                    method: "wallet"
-                  }
-                ]
-              }
-            },
-            sequence: ["block.banks", "block.gpay", "block.other"],
-            preferences: {
-              show_default_blocks: false
-            }
-          }
-        },
-        
-        // UPI specific configuration
-        upi: {
-          flow: 'collect',
-          vpa: 'suhas855@oksbi'
-        },
-        
-        // Google Pay configuration
-        gpay: {
-          flow: 'intent'
-        },
-        
         // Prefill customer details
         prefill: {
-          name: cardData.name,
+          name: cardData.name || 'Customer',
           email: 'customer@example.com',
           contact: '+919999999999'
         },
@@ -178,12 +152,14 @@ const PaymentSection = ({ onPaymentSubmit, orderTotal, cartItems, shippingAddres
         // Handler for payment success
         handler: async function (response) {
           try {
+            console.log('Payment successful, response:', response);
             await apiFetch('/order/verifyrazorpay', {
               method: 'POST',
               body: JSON.stringify({ razorpay_order_id: response.razorpay_order_id }),
             });
             onPaymentSubmit({ method: 'razorpay', paymentId: response.razorpay_payment_id });
           } catch (err) {
+            console.error('Payment verification failed:', err);
             setErrorMsg('Payment verification failed.');
           }
           setLoading(false);
@@ -192,34 +168,32 @@ const PaymentSection = ({ onPaymentSubmit, orderTotal, cartItems, shippingAddres
         // Modal configuration
         modal: {
           ondismiss: function() {
+            console.log('Payment modal dismissed');
             setLoading(false);
           },
           confirm_close: true,
           escape: false
-        },
-        
-        // Enable all payment methods
-        method: {
-          upi: {
-            flow: 'collect',
-            vpa: 'suhas855@oksbi'
-          },
-          card: {
-            name: 'Credit/Debit Card'
-          },
-          netbanking: {
-            name: 'Net Banking'
-          },
-          wallet: {
-            name: 'Wallet'
-          },
-          gpay: {
-            flow: 'intent'
-          }
         }
       };
-      const rzp = new window.Razorpay(options);
-      rzp.open();
+      console.log('Razorpay options:', options);
+      
+      try {
+        const rzp = new window.Razorpay(options);
+        console.log('Razorpay instance created successfully');
+        
+        // Add error handler
+        rzp.on('payment.failed', function (response) {
+          console.error('Payment failed:', response.error);
+          setErrorMsg(`Payment failed: ${response.error.description || 'Unknown error'}`);
+          setLoading(false);
+        });
+        
+        rzp.open();
+      } catch (rzpError) {
+        console.error('Razorpay instance creation failed:', rzpError);
+        setErrorMsg('Failed to initialize payment gateway. Please try again.');
+        setLoading(false);
+      }
     } catch (err) {
       console.error('Payment error:', err);
       if (err.message && err.message.includes('Razorpay')) {

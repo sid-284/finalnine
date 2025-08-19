@@ -23,7 +23,8 @@ app.set('trust proxy', 1)
 // Hardcoded CORS origins for production
 const allowedCorsOrigins = [
   "https://www.9twoofficial.com",
-  "https://finalnine.vercel.app"
+  "https://finalnine.vercel.app",
+  "https://finalnine.onrender.com"
 ]
 
 app.use(cors({
@@ -36,6 +37,12 @@ app.use(cors({
 
 app.use(express.json({ limit: '50mb' }))
 app.use(express.urlencoded({ extended: true, limit: '50mb' }))
+
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - Origin: ${req.headers.origin || 'No origin'} - User-Agent: ${req.headers['user-agent'] || 'No user-agent'}`);
+  next();
+});
 
 // Apply rate limiting to all routes
 app.use(generalLimiter)
