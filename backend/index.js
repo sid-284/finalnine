@@ -20,24 +20,33 @@ let app = express()
 app.use(cookieParser())
 // Trust proxy so "secure" cookies work behind proxies (e.g., Render, Vercel)
 app.set('trust proxy', 1)
-// CORS origins for production
-const allowedCorsOrigins = [
-  'https://www.9tytwooffical.com',
-  'https://9tytwooffical.com',
-  'http://localhost:3000',
-  'http://localhost:5173'
-]
+// CORS origins - can be overridden by environment variable
+const allowedCorsOrigins = process.env.CORS_ORIGINS 
+  ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim())
+  : [
+      'https://www.9tytwooffical.com',
+      'https://9tytwooffical.com',
+      'http://localhost:3000',
+      'http://localhost:5173'
+    ];
 
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      console.log('CORS: No origin header, allowing request');
+      return callback(null, true);
+    }
+    
+    console.log(`CORS: Checking origin: ${origin}`);
+    console.log(`CORS: Allowed origins: ${allowedCorsOrigins.join(', ')}`);
     
     if (allowedCorsOrigins.indexOf(origin) !== -1) {
+      console.log(`CORS: Origin ${origin} is allowed`);
       callback(null, true);
     } else {
-      console.log(`CORS blocked origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
+      console.log(`CORS: Origin ${origin} is blocked`);
+      callback(new Error(`Origin ${origin} is not allowed by CORS policy`));
     }
   },
   credentials: true,
@@ -170,6 +179,16 @@ app.use("/api/order", orderRoutes)
 // Global error handling middleware
 app.use((error, req, res, next) => {
   console.error('Global error handler caught:', error);
+  
+  // Handle CORS errors specifically
+  if (error.message && error.message.includes('CORS')) {
+    console.error('CORS error detected:', error.message);
+    return res.status(403).json({ 
+      message: 'CORS policy violation',
+      error: error.message,
+      allowedOrigins: allowedCorsOrigins
+    });
+  }
   
   // Handle specific error types
   if (error.name === 'ValidationError') {
