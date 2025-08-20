@@ -20,16 +20,55 @@ let app = express()
 app.use(cookieParser())
 // Trust proxy so "secure" cookies work behind proxies (e.g., Render, Vercel)
 app.set('trust proxy', 1)
-// Hardcoded CORS origins for production
-const allowedCorsOrigins = ['*']
+// CORS origins for production
+const allowedCorsOrigins = [
+  'https://www.9tytwooffical.com',
+  'https://9tytwooffical.com',
+  'http://localhost:3000',
+  'http://localhost:5173'
+]
 
 app.use(cors({
-  origin: allowedCorsOrigins,
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedCorsOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log(`CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  exposedHeaders: ['Set-Cookie']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Origin', 'Accept'],
+  exposedHeaders: ['Set-Cookie'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }))
+
+// Handle preflight requests explicitly
+app.options('*', cors())
+
+// Add CORS headers to all responses
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  console.log(`Processing request from origin: ${origin}`);
+  console.log(`Allowed origins: ${allowedCorsOrigins.join(', ')}`);
+  
+  if (origin && allowedCorsOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    console.log(`CORS origin allowed: ${origin}`);
+  } else if (origin) {
+    console.log(`CORS origin blocked: ${origin}`);
+  }
+  
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Origin, Accept');
+  next();
+});
 
 app.use(express.json({ limit: '50mb' }))
 app.use(express.urlencoded({ extended: true, limit: '50mb' }))
@@ -37,6 +76,13 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }))
 // Request logging middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - Origin: ${req.headers.origin || 'No origin'} - User-Agent: ${req.headers['user-agent'] || 'No user-agent'}`);
+  
+  // Log CORS-related headers for debugging
+  if (req.method === 'OPTIONS') {
+    console.log('Preflight request detected');
+    console.log('Request headers:', req.headers);
+  }
+  
   next();
 });
 
@@ -83,6 +129,19 @@ app.get('/api/health', async (req, res) => {
       error: error.message 
     });
   }
+});
+
+// CORS test endpoint
+app.get('/api/cors-test', (req, res) => {
+  const origin = req.headers.origin;
+  console.log(`CORS test request from origin: ${origin}`);
+  
+  res.json({ 
+    message: 'CORS test successful',
+    origin: origin,
+    allowedOrigins: allowedCorsOrigins,
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Test authentication endpoint
