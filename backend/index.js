@@ -23,8 +23,9 @@ app.set('trust proxy', 1)
 // Hardcoded CORS origins for production
 const allowedCorsOrigins = [
   "https://www.9twoofficial.com",
+  "https://www.9tytwoofficial.com",
   "https://finalnine.vercel.app",
-  "https://finalnine.onrender.com"
+  "https://finalnine.onrender.com",
 ]
 
 app.use(cors({
