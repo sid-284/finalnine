@@ -10,6 +10,38 @@ if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
     console.error('Razorpay configuration missing. Please check RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET environment variables.');
 }
 
+// Helper to resolve Razorpay keys and mode
+const resolveRazorpayKeys = () => {
+    const explicitMode = (process.env.RAZORPAY_MODE || '').toLowerCase().trim();
+
+    const liveId = (process.env.RAZORPAY_KEY_ID || process.env.RAZORPAY_LIVE_KEY_ID || '').trim();
+    const liveSecret = (process.env.RAZORPAY_KEY_SECRET || process.env.RAZORPAY_LIVE_KEY_SECRET || '').trim();
+
+    const testId = (process.env.RAZORPAY_TEST_KEY_ID || '').trim();
+    const testSecret = (process.env.RAZORPAY_TEST_KEY_SECRET || '').trim();
+
+    const hasLive = !!(liveId && liveSecret);
+    const hasTest = !!(testId && testSecret);
+
+    let mode = 'live';
+    let key_id = liveId;
+    let key_secret = liveSecret;
+
+    if (explicitMode === 'test' && hasTest) {
+        mode = 'test';
+        key_id = testId;
+        key_secret = testSecret;
+    } else if (!hasLive && hasTest) {
+        mode = 'test';
+        key_id = testId;
+        key_secret = testSecret;
+    } else if (!hasLive && !hasTest) {
+        return { mode: null, key_id: null, key_secret: null };
+    }
+
+    return { mode, key_id, key_secret };
+};
+
 const razorpayInstance = new razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET
@@ -106,9 +138,13 @@ export const placeOrderRazorpay = async (req,res) => {
             return res.status(400).json({ message: 'Invalid amount' });
         }
         const paiseAmount = Math.round(numericAmount * 100); // integer paise, rounded
-        if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+        // Resolve keys/mode per request
+        const { mode, key_id, key_secret } = resolveRazorpayKeys();
+        if (!mode || !key_id || !key_secret) {
             return res.status(500).json({ message: 'Payment configuration missing' });
         }
+
+        const rp = new razorpay({ key_id, key_secret });
 
         const options = {
             amount: paiseAmount,
@@ -122,52 +158,29 @@ export const placeOrderRazorpay = async (req,res) => {
         }
         
         try {
-            const razorpayOrder = await razorpayInstance.orders.create(options);
-            console.log('placeOrderRazorpay - Razorpay order created:', razorpayOrder.id);
-            // Return minimal fields plus the public key so frontend uses the same mode/account
+            const razorpayOrder = await rp.orders.create(options);
+            console.log('placeOrderRazorpay - Razorpay order created:', razorpayOrder.id, 'mode:', mode, 'key prefix:', key_id?.slice(0,7));
             return res.status(200).json({
                 id: razorpayOrder.id,
                 amount: razorpayOrder.amount,
                 currency: razorpayOrder.currency,
                 receipt: razorpayOrder.receipt,
-                key: process.env.RAZORPAY_KEY_ID
+                key: key_id
             });
         } catch (razorpayError) {
-            console.log('Razorpay order creation error (primary keys):', {
+            console.log('Razorpay order creation error:', {
                 message: razorpayError?.message,
                 statusCode: razorpayError?.statusCode,
                 description: razorpayError?.error?.description,
                 code: razorpayError?.error?.code
             });
-            // Optional fallback to test keys if configured
-            if (razorpayTestInstance) {
-                try {
-                    const testOrder = await razorpayTestInstance.orders.create(options);
-                    console.log('placeOrderRazorpay - Fallback test order created:', testOrder.id);
-                    return res.status(200).json({
-                        id: testOrder.id,
-                        amount: testOrder.amount,
-                        currency: testOrder.currency,
-                        receipt: testOrder.receipt,
-                        key: process.env.RAZORPAY_TEST_KEY_ID
-                    });
-                } catch (fallbackError) {
-                    console.log('Razorpay order creation error (fallback test keys):', {
-                        message: fallbackError?.message,
-                        statusCode: fallbackError?.statusCode,
-                        description: fallbackError?.error?.description,
-                        code: fallbackError?.error?.code
-                    });
-                }
-            }
-            // Delete the order we created since Razorpay failed
             try {
                 await Order.findByIdAndDelete(newOrder._id);
                 console.log('placeOrderRazorpay - Cleaned up failed order');
             } catch (cleanupError) {
                 console.log('placeOrderRazorpay - Failed to cleanup order:', cleanupError.message);
             }
-            return res.status(500).json({ message: 'Failed to create payment order', details: razorpayError?.error?.description || razorpayError?.message || 'Unknown error' });
+            return res.status(401).json({ message: 'Failed to create payment order', details: razorpayError?.error?.description || razorpayError?.message || 'Authentication failed', mode });
         }
     } catch (error) {
         console.log('placeOrderRazorpay - General error:', error.message);
