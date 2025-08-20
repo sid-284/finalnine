@@ -2,6 +2,7 @@ import Order from "../model/orderModel.js";
 import User from "../model/userModel.js";
 import razorpay from 'razorpay'
 import dotenv from 'dotenv'
+import crypto from 'crypto'
 dotenv.config()
 const currency = 'inr'
 
@@ -10,7 +11,6 @@ if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
     console.error('Razorpay configuration missing. Please check RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET environment variables.');
 }
 
-// Helper to resolve Razorpay keys and mode
 const resolveRazorpayKeys = () => {
     const explicitMode = (process.env.RAZORPAY_MODE || '').toLowerCase().trim();
 
@@ -41,18 +41,6 @@ const resolveRazorpayKeys = () => {
 
     return { mode, key_id, key_secret };
 };
-
-const razorpayInstance = new razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET
-})
-
-// Optional fallback (test) instance
-const hasTestKeys = !!(process.env.RAZORPAY_TEST_KEY_ID && process.env.RAZORPAY_TEST_KEY_SECRET);
-const razorpayTestInstance = hasTestKeys ? new razorpay({
-    key_id: process.env.RAZORPAY_TEST_KEY_ID,
-    key_secret: process.env.RAZORPAY_TEST_KEY_SECRET
-}) : null;
 
 console.log('Razorpay instance created with key_id:', process.env.RAZORPAY_KEY_ID ? 'Present' : 'Missing');
 
@@ -100,22 +88,31 @@ export const placeOrder = async (req,res) => {
 }
 
 export const placeOrderRazorpay = async (req,res) => {
+    const requestId = `rzp_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
     try {
+        console.log(`[${requestId}] placeOrderRazorpay - start`);
         // Validate userId is present
         if (!req.userId) {
-            console.log('placeOrderRazorpay - Missing userId in request');
+            console.log(`[${requestId}] placeOrderRazorpay - Missing userId in request`);
             return res.status(401).json({message: 'User not authenticated properly'});
         }
         
         const {items , amount , address} = req.body;
         const userId = req.userId;
+        console.log(`[${requestId}] placeOrderRazorpay - payload`, {
+            itemsCount: Array.isArray(items) ? items.length : 0,
+            amount,
+            hasAddress: !!address,
+            userId
+        });
         
         // Validate required fields
         if (!items || !amount || !address) {
+            console.log(`[${requestId}] placeOrderRazorpay - missing fields`);
             return res.status(400).json({message: 'Missing required fields: items, amount, or address'});
         }
         
-        console.log('placeOrderRazorpay - Creating order for userId:', userId);
+        console.log(`[${requestId}] placeOrderRazorpay - Creating order for userId: ${userId}`);
         
         const orderData = {
             items,
@@ -130,19 +127,25 @@ export const placeOrderRazorpay = async (req,res) => {
         const newOrder = new Order(orderData)
         await newOrder.save()
         
-        console.log('placeOrderRazorpay - Order saved successfully:', newOrder._id);
+        console.log(`[${requestId}] placeOrderRazorpay - DB order saved: ${newOrder._id}`);
 
         // Sanitize and validate amount
         const numericAmount = Number(amount);
         if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+            console.log(`[${requestId}] placeOrderRazorpay - invalid amount`, { numericAmount });
             return res.status(400).json({ message: 'Invalid amount' });
         }
         const paiseAmount = Math.round(numericAmount * 100); // integer paise, rounded
+        console.log(`[${requestId}] placeOrderRazorpay - amount calc`, { numericAmount, paiseAmount });
+
         // Resolve keys/mode per request
         const { mode, key_id, key_secret } = resolveRazorpayKeys();
         if (!mode || !key_id || !key_secret) {
+            console.log(`[${requestId}] placeOrderRazorpay - missing payment configuration`, { modePresent: !!mode, keyPresent: !!key_id, secretPresent: !!key_secret });
             return res.status(500).json({ message: 'Payment configuration missing' });
         }
+        const maskedKey = key_id ? `${key_id.slice(0,7)}...` : 'missing';
+        console.log(`[${requestId}] placeOrderRazorpay - resolved mode`, { mode, keyPrefix: maskedKey });
 
         const rp = new razorpay({ key_id, key_secret });
 
@@ -156,10 +159,11 @@ export const placeOrderRazorpay = async (req,res) => {
                 user_id: userId.toString()
             }
         }
+        console.log(`[${requestId}] placeOrderRazorpay - create options`, { amount: options.amount, currency: options.currency, receipt: options.receipt });
         
         try {
             const razorpayOrder = await rp.orders.create(options);
-            console.log('placeOrderRazorpay - Razorpay order created:', razorpayOrder.id, 'mode:', mode, 'key prefix:', key_id?.slice(0,7));
+            console.log(`[${requestId}] placeOrderRazorpay - Razorpay order created`, { orderId: razorpayOrder.id, mode, keyPrefix: maskedKey });
             return res.status(200).json({
                 id: razorpayOrder.id,
                 amount: razorpayOrder.amount,
@@ -168,7 +172,7 @@ export const placeOrderRazorpay = async (req,res) => {
                 key: key_id
             });
         } catch (razorpayError) {
-            console.log('Razorpay order creation error:', {
+            console.log(`[${requestId}] placeOrderRazorpay - Razorpay error`, {
                 message: razorpayError?.message,
                 statusCode: razorpayError?.statusCode,
                 description: razorpayError?.error?.description,
@@ -176,57 +180,81 @@ export const placeOrderRazorpay = async (req,res) => {
             });
             try {
                 await Order.findByIdAndDelete(newOrder._id);
-                console.log('placeOrderRazorpay - Cleaned up failed order');
+                console.log(`[${requestId}] placeOrderRazorpay - cleaned DB order ${newOrder._id}`);
             } catch (cleanupError) {
-                console.log('placeOrderRazorpay - Failed to cleanup order:', cleanupError.message);
+                console.log(`[${requestId}] placeOrderRazorpay - cleanup failed`, { error: cleanupError.message });
             }
-            return res.status(401).json({ message: 'Failed to create payment order', details: razorpayError?.error?.description || razorpayError?.message || 'Authentication failed', mode });
+            return res.status(401).json({ message: 'Failed to create payment order', details: razorpayError?.error?.description || razorpayError?.message || 'Authentication failed' });
         }
     } catch (error) {
-        console.log('placeOrderRazorpay - General error:', error.message);
+        console.log(`[${requestId}] placeOrderRazorpay - General error:`, error.message);
         return res.status(500).json({message: error.message})
     }
 }
 
-
 export const verifyRazorpay = async (req,res) =>{
+    const requestId = `rzpver_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
     try {
+        console.log(`[${requestId}] verifyRazorpay - start`);
         // Validate userId is present
         if (!req.userId) {
-            console.log('verifyRazorpay - Missing userId in request');
+            console.log(`[${requestId}] verifyRazorpay - Missing userId in request`);
             return res.status(401).json({message: 'User not authenticated properly'});
         }
-        
-        const userId = req.userId
-        const {razorpay_order_id} = req.body
-        
-        if (!razorpay_order_id) {
-            return res.status(400).json({message: 'Razorpay order ID is required'});
+
+        const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+        const userId = req.userId;
+        console.log(`[${requestId}] verifyRazorpay - payload`, { razorpay_order_id, hasPaymentId: !!razorpay_payment_id, hasSignature: !!razorpay_signature, userId });
+
+        if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+            console.log(`[${requestId}] verifyRazorpay - missing fields`);
+            return res.status(400).json({ message: 'Payment verification failed' });
         }
-        
-        console.log('verifyRazorpay - Verifying payment for userId:', userId, 'orderId:', razorpay_order_id);
-        
+
+        const { key_secret } = resolveRazorpayKeys();
+        if (!key_secret) {
+            console.log(`[${requestId}] verifyRazorpay - missing secret`);
+            return res.status(500).json({ message: 'Payment configuration missing' });
+        }
+
+        const body = `${razorpay_order_id}|${razorpay_payment_id}`;
+        const expectedSignature = crypto
+            .createHmac('sha256', key_secret)
+            .update(body)
+            .digest('hex');
+        console.log(`[${requestId}] verifyRazorpay - signature compare`, { expectedSignaturePrefix: expectedSignature.slice(0,8), providedSignaturePrefix: razorpay_signature.slice(0,8) });
+
+        if (expectedSignature !== razorpay_signature) {
+            console.log(`[${requestId}] verifyRazorpay - invalid signature`);
+            return res.status(400).json({ message: 'Invalid payment signature' });
+        }
+
+        // Fetch razorpay order to retrieve our DB receipt (order id)
+        const { key_id, key_secret: ks } = resolveRazorpayKeys();
+        const rp = new razorpay({ key_id, key_secret: ks });
+        let orderInfo;
         try {
-            const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id)
-            console.log('verifyRazorpay - Razorpay order info:', orderInfo.status);
-            
-            if(orderInfo.status === 'paid'){
-                await Order.findByIdAndUpdate(orderInfo.receipt,{payment:true});
-                await User.findByIdAndUpdate(userId , {cartData:{}})
-                console.log('verifyRazorpay - Payment verified successfully');
-                res.status(200).json({message:'Payment Successful'})
-            }
-            else{
-                console.log('verifyRazorpay - Payment not completed, status:', orderInfo.status);
-                res.status(400).json({message:'Payment Failed - Payment not completed'})
-            }
-        } catch (razorpayError) {
-            console.log('Razorpay verification error:', razorpayError);
-            res.status(500).json({ message: 'Payment verification failed' });
+            orderInfo = await rp.orders.fetch(razorpay_order_id);
+            console.log(`[${requestId}] verifyRazorpay - fetched razorpay order`, { id: orderInfo?.id, receipt: orderInfo?.receipt, status: orderInfo?.status });
+        } catch (e) {
+            console.log(`[${requestId}] verifyRazorpay - Failed to fetch order from Razorpay:`, e?.message);
+            return res.status(500).json({ message: 'Payment verification failed (lookup)' });
         }
+
+        const dbOrderId = orderInfo?.receipt;
+        if (!dbOrderId) {
+            console.log(`[${requestId}] verifyRazorpay - missing receipt in order`);
+            return res.status(500).json({ message: 'Payment verification failed (missing receipt)' });
+        }
+
+        await Order.findByIdAndUpdate(dbOrderId, { payment: true });
+        await User.findByIdAndUpdate(userId, { cartData: {} });
+        console.log(`[${requestId}] verifyRazorpay - marked order paid & cleared cart`, { dbOrderId, userId });
+
+        return res.status(200).json({ message: 'Payment verified successfully' });
     } catch (error) {
-        console.log('verifyRazorpay - General error:', error.message)
-         res.status(500).json({message: error.message})
+        console.log(`[${requestId}] verifyRazorpay - General error:`, error.message)
+        return res.status(500).json({message: error.message})
     }
 }
 
