@@ -18,14 +18,14 @@ export const registration = async (req,res) => {
     // Check if user exists by firebaseUid
     const existUserByFirebase = await User.findOne({firebaseUid})
     if(existUserByFirebase){
-        return res.status(400).json({message:"User already exists with this Firebase UID"})
+        return res.status(401).json({message:"User already exists with this Firebase UID"})
     }
     
     if(!validator.isEmail(email)){
-         return res.status(400).json({message:"Enter valid Email"})
+         return res.status(401).json({message:"Enter valid Email"})
     }
     if(!firebaseUid){
-        return res.status(400).json({message:"Firebase UID is required"})
+        return res.status(401).json({message:"Firebase UID is required"})
     }
 
     const user = await User.create({name, email, firebaseUid, avatar});
@@ -98,10 +98,10 @@ export const login = async (req,res) => {
         let token = await genToken(user._id)
         res.cookie("token", token, {
           httpOnly: true,
-          secure: true, // Always use secure in production
-          sameSite: 'None', // Required for cross-domain requests
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
           maxAge: 7 * 24 * 60 * 60 * 1000,
-          path: '/'
+          path: '/',
         })
     console.log('Login successful:', user._id);
     return res.status(201).json(user)
@@ -117,9 +117,9 @@ export const logOut = async (req,res) => {
 try {
     res.clearCookie("token", {
       httpOnly: true,
-      secure: true, // Always use secure in production
-      sameSite: 'None', // Required for cross-domain requests
-      path: '/'
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+      path: '/',
     })
     return res.status(200).json({message:"logOut successful"})
 } catch (error) {

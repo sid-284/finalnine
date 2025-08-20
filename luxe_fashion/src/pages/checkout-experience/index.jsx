@@ -10,11 +10,9 @@ import OrderSummary from './components/OrderSummary';
 import OrderConfirmation from './components/OrderConfirmation';
 import ProgressIndicator from './components/ProgressIndicator';
 import { useCart } from '../../context/CartContext';
-import { useUser } from '../../context/UserContext';
 
 const CheckoutExperience = () => {
   const navigate = useNavigate();
-  const { backendAuthenticated, loading } = useUser();
   const [currentStep, setCurrentStep] = useState(1);
   const [isGuest, setIsGuest] = useState(true);
   const [shippingMethod, setShippingMethod] = useState({ value: 'standard', label: 'Standard Shipping', price: 0 });
@@ -35,55 +33,13 @@ const CheckoutExperience = () => {
     console.log('Current cart:', cart);
     console.log('Cart length:', cart.length);
     console.log('Current step:', currentStep);
-    console.log('Backend authenticated:', backendAuthenticated);
-    console.log('Loading:', loading);
-    
-    // Wait for authentication to load
-    if (loading) {
-      return;
-    }
-    
-    // Check authentication
-    if (!backendAuthenticated) {
-      console.log('User not authenticated, redirecting to login');
-      navigate('/login');
-      return;
-    }
     
     // Redirect if cart is empty
     if (cart.length === 0) {
       console.log('Cart is empty, redirecting to collections');
       navigate('/collection-universe');
     }
-  }, [currentStep, cart, navigate, backendAuthenticated, loading]);
-
-  // Show loading while checking authentication
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Checking authentication...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show authentication required message
-  if (!backendAuthenticated) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Icon name="Lock" size={48} className="mx-auto mb-4 text-muted-foreground" />
-          <h2 className="text-2xl font-semibold mb-2">Authentication Required</h2>
-          <p className="text-muted-foreground mb-4">Please log in to continue with checkout</p>
-          <Button onClick={() => navigate('/login')}>
-            Go to Login
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  }, [currentStep, cart, navigate]);
 
   const handleUpdateQuantity = (itemId, newQuantity, size, color) => {
     updateQuantity(itemId, size, color, newQuantity);

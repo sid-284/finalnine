@@ -108,9 +108,21 @@ export const placeOrderRazorpay = async (req,res) => {
         try {
             const razorpayOrder = await razorpayInstance.orders.create(options);
             console.log('placeOrderRazorpay - Razorpay order created:', razorpayOrder.id);
-            res.status(200).json(razorpayOrder);
+            // Return minimal fields plus the public key so frontend uses the same mode/account
+            res.status(200).json({
+                id: razorpayOrder.id,
+                amount: razorpayOrder.amount,
+                currency: razorpayOrder.currency,
+                receipt: razorpayOrder.receipt,
+                key: process.env.RAZORPAY_KEY_ID
+            });
         } catch (razorpayError) {
-            console.log('Razorpay order creation error:', razorpayError);
+            console.log('Razorpay order creation error:', {
+                message: razorpayError?.message,
+                statusCode: razorpayError?.statusCode,
+                description: razorpayError?.error?.description,
+                code: razorpayError?.error?.code
+            });
             // Delete the order we created since Razorpay failed
             try {
                 await Order.findByIdAndDelete(newOrder._id);
@@ -118,7 +130,7 @@ export const placeOrderRazorpay = async (req,res) => {
             } catch (cleanupError) {
                 console.log('placeOrderRazorpay - Failed to cleanup order:', cleanupError.message);
             }
-            res.status(500).json({ message: 'Failed to create payment order' });
+            res.status(500).json({ message: 'Failed to create payment order', details: razorpayError?.error?.description || razorpayError?.message || 'Unknown error' });
         }
     } catch (error) {
         console.log('placeOrderRazorpay - General error:', error.message);

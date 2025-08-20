@@ -68,6 +68,17 @@ const PaymentSection = ({ onPaymentSubmit, orderTotal, cartItems, shippingAddres
     // Debug: Check if user is authenticated
     console.log('PaymentSection - Starting payment process...');
     
+    // Debug: Check authentication status
+    try {
+      const authCheck = await apiFetch('/user/getcurrentuser');
+      console.log('Authentication check successful:', authCheck);
+    } catch (authError) {
+      console.error('Authentication check failed:', authError);
+      setErrorMsg('Authentication failed. Please log in again.');
+      setLoading(false);
+      return;
+    }
+    
     // Debug: Check Razorpay key configuration
     const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
     console.log('Razorpay key configured:', razorpayKey ? 'Yes' : 'No');
@@ -109,10 +120,12 @@ const PaymentSection = ({ onPaymentSubmit, orderTotal, cartItems, shippingAddres
         throw new Error('Backend order creation failed - invalid response structure');
       }
       
+      const effectiveKey = order.key || import.meta.env.VITE_RAZORPAY_KEY_ID;
+      console.log('Using Razorpay key:', effectiveKey ? (effectiveKey.startsWith('rzp_test') ? 'TEST' : 'LIVE') : 'Missing');
       console.log('Using Razorpay order ID:', order.id);
       
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_YOUR_KEY_ID', // Use environment variable
+        key: effectiveKey || 'rzp_test_YOUR_KEY_ID', // Prefer key from backend to ensure same account/mode
         amount: Math.round(orderTotal * 100), // Convert to paise and ensure it's an integer
         currency: 'INR',
         name: 'Luxe Fashion',
@@ -186,11 +199,16 @@ const PaymentSection = ({ onPaymentSubmit, orderTotal, cartItems, shippingAddres
     } catch (err) {
       console.error('Payment error:', err);
       
+      // Extract backend details if available
+      const backendDetails = err?.data?.details || err?.data?.message;
+      
       // Handle specific error types
       if (err.status === 401) {
         setErrorMsg('Authentication failed. Please log in again.');
       } else if (err.status === 403) {
         setErrorMsg('Access denied. Please check your permissions.');
+      } else if (backendDetails) {
+        setErrorMsg(`Payment error: ${backendDetails}`);
       } else if (err.message && err.message.includes('Razorpay')) {
         setErrorMsg('Payment gateway error. Please check your Razorpay configuration.');
       } else if (err.message && err.message.includes('order')) {
