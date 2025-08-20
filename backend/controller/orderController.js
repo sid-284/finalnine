@@ -15,6 +15,13 @@ const razorpayInstance = new razorpay({
     key_secret: process.env.RAZORPAY_KEY_SECRET
 })
 
+// Optional fallback (test) instance
+const hasTestKeys = !!(process.env.RAZORPAY_TEST_KEY_ID && process.env.RAZORPAY_TEST_KEY_SECRET);
+const razorpayTestInstance = hasTestKeys ? new razorpay({
+    key_id: process.env.RAZORPAY_TEST_KEY_ID,
+    key_secret: process.env.RAZORPAY_TEST_KEY_SECRET
+}) : null;
+
 console.log('Razorpay instance created with key_id:', process.env.RAZORPAY_KEY_ID ? 'Present' : 'Missing');
 
 // for User
@@ -60,7 +67,6 @@ export const placeOrder = async (req,res) => {
     }
 }
 
-
 export const placeOrderRazorpay = async (req,res) => {
     try {
         // Validate userId is present
@@ -94,11 +100,21 @@ export const placeOrderRazorpay = async (req,res) => {
         
         console.log('placeOrderRazorpay - Order saved successfully:', newOrder._id);
 
+        // Sanitize and validate amount
+        const numericAmount = Number(amount);
+        if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+            return res.status(400).json({ message: 'Invalid amount' });
+        }
+        const paiseAmount = Math.round(numericAmount * 100); // integer paise, rounded
+        if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+            return res.status(500).json({ message: 'Payment configuration missing' });
+        }
+
         const options = {
-            amount: Math.round(amount * 100), // Ensure amount is in paise and is an integer
-            currency: currency.toUpperCase(),
+            amount: paiseAmount,
+            currency: 'INR',
             receipt: newOrder._id.toString(),
-            payment_capture: 1, // Auto capture payment
+            payment_capture: 1,
             notes: {
                 order_id: newOrder._id.toString(),
                 user_id: userId.toString()
@@ -109,7 +125,7 @@ export const placeOrderRazorpay = async (req,res) => {
             const razorpayOrder = await razorpayInstance.orders.create(options);
             console.log('placeOrderRazorpay - Razorpay order created:', razorpayOrder.id);
             // Return minimal fields plus the public key so frontend uses the same mode/account
-            res.status(200).json({
+            return res.status(200).json({
                 id: razorpayOrder.id,
                 amount: razorpayOrder.amount,
                 currency: razorpayOrder.currency,
@@ -117,12 +133,33 @@ export const placeOrderRazorpay = async (req,res) => {
                 key: process.env.RAZORPAY_KEY_ID
             });
         } catch (razorpayError) {
-            console.log('Razorpay order creation error:', {
+            console.log('Razorpay order creation error (primary keys):', {
                 message: razorpayError?.message,
                 statusCode: razorpayError?.statusCode,
                 description: razorpayError?.error?.description,
                 code: razorpayError?.error?.code
             });
+            // Optional fallback to test keys if configured
+            if (razorpayTestInstance) {
+                try {
+                    const testOrder = await razorpayTestInstance.orders.create(options);
+                    console.log('placeOrderRazorpay - Fallback test order created:', testOrder.id);
+                    return res.status(200).json({
+                        id: testOrder.id,
+                        amount: testOrder.amount,
+                        currency: testOrder.currency,
+                        receipt: testOrder.receipt,
+                        key: process.env.RAZORPAY_TEST_KEY_ID
+                    });
+                } catch (fallbackError) {
+                    console.log('Razorpay order creation error (fallback test keys):', {
+                        message: fallbackError?.message,
+                        statusCode: fallbackError?.statusCode,
+                        description: fallbackError?.error?.description,
+                        code: fallbackError?.error?.code
+                    });
+                }
+            }
             // Delete the order we created since Razorpay failed
             try {
                 await Order.findByIdAndDelete(newOrder._id);
@@ -130,11 +167,11 @@ export const placeOrderRazorpay = async (req,res) => {
             } catch (cleanupError) {
                 console.log('placeOrderRazorpay - Failed to cleanup order:', cleanupError.message);
             }
-            res.status(500).json({ message: 'Failed to create payment order', details: razorpayError?.error?.description || razorpayError?.message || 'Unknown error' });
+            return res.status(500).json({ message: 'Failed to create payment order', details: razorpayError?.error?.description || razorpayError?.message || 'Unknown error' });
         }
     } catch (error) {
         console.log('placeOrderRazorpay - General error:', error.message);
-        res.status(500).json({message: error.message})
+        return res.status(500).json({message: error.message})
     }
 }
 
