@@ -164,6 +164,8 @@ export const placeOrderRazorpay = async (req,res) => {
         try {
             const razorpayOrder = await rp.orders.create(options);
             console.log(`[${requestId}] placeOrderRazorpay - Razorpay order created`, { orderId: razorpayOrder.id, mode, keyPrefix: maskedKey });
+            // persist razorpay order id for later admin view
+            await Order.findByIdAndUpdate(newOrder._id, { razorpayOrderId: razorpayOrder.id });
             return res.status(200).json({
                 id: razorpayOrder.id,
                 amount: razorpayOrder.amount,
@@ -247,7 +249,13 @@ export const verifyRazorpay = async (req,res) =>{
             return res.status(500).json({ message: 'Payment verification failed (missing receipt)' });
         }
 
-        await Order.findByIdAndUpdate(dbOrderId, { payment: true });
+        await Order.findByIdAndUpdate(dbOrderId, { 
+            payment: true,
+            razorpayPaymentId: razorpay_payment_id,
+            razorpaySignature: razorpay_signature,
+            paymentVerifiedAt: new Date(),
+            status: 'Paid'
+        });
         await User.findByIdAndUpdate(userId, { cartData: {} });
         console.log(`[${requestId}] verifyRazorpay - marked order paid & cleared cart`, { dbOrderId, userId });
 

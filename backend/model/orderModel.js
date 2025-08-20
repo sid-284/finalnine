@@ -32,6 +32,12 @@ const orderSchema = new mongoose.Schema({
         required: true,
         default:false
     },
+    // Razorpay payment identifiers and metadata
+    razorpayOrderId: { type: String, default: '' },
+    razorpayPaymentId: { type: String, default: '' },
+    razorpaySignature: { type: String, default: '' },
+    paymentVerifiedAt: { type: Date },
+    paymentNotes: { type: Object, default: {} },
     date: {
         type: Number,
         required:true

@@ -38,6 +38,11 @@ const AdminPanel = () => {
   const [adminForm, setAdminForm] = useState({ email: '', password: '' });
   const [adminLoading, setAdminLoading] = useState(false);
 
+  // Orders state
+  const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [showPaidOnly, setShowPaidOnly] = useState(true);
+
   // Check admin authentication status on component mount
   useEffect(() => {
     checkAdminAuth();
@@ -45,7 +50,10 @@ const AdminPanel = () => {
   }, []);
 
   useEffect(() => {
-    if (isAdminLoggedIn) fetchProducts();
+    if (isAdminLoggedIn) {
+      fetchProducts();
+      fetchOrders();
+    }
     // eslint-disable-next-line
   }, [isAdminLoggedIn]);
 
@@ -119,6 +127,21 @@ const AdminPanel = () => {
       setProducts([]);
     }
     setLoading(false);
+  };
+
+  const fetchOrders = async () => {
+    setOrdersLoading(true);
+    try {
+      // Admin list endpoint requires POST
+      const data = await apiFetch('/order/list', { method: 'POST' });
+      // Sort by createdAt desc
+      const sorted = Array.isArray(data) ? [...data].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)) : [];
+      setOrders(sorted);
+    } catch (err) {
+      console.error('Failed to fetch orders:', err);
+      setOrders([]);
+    }
+    setOrdersLoading(false);
   };
 
   const handleFormChange = (e) => {
@@ -278,6 +301,13 @@ const AdminPanel = () => {
     }
   };
 
+  const filteredOrders = orders.filter(o => showPaidOnly ? o.payment === true : true);
+
+  const shorten = (str) => {
+    if (!str) return '';
+    return str.length > 12 ? `${str.slice(0,6)}...${str.slice(-4)}` : str;
+  }
+
   if (!isAdminLoggedIn) {
     return (
       <div className="min-h-screen bg-background flex flex-col overflow-x-hidden" style={{ background: '#FEFEFE' }}>
@@ -298,18 +328,6 @@ const AdminPanel = () => {
                   required
                   className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 pr-10"
                 />
-                {/* Copy button for username
-                <button
-                  type="button"
-                  className="absolute right-2 top-8 text-xs text-muted-foreground hover:text-foreground focus:outline-none"
-                  onClick={() => {
-                    navigator.clipboard.writeText(adminForm.email);
-                  }}
-                  tabIndex={-1}
-                  aria-label="Copy username"
-                >
-                  📋
-                </button> */}
               </div>
               <div className="space-y-2 relative">
                 <label htmlFor="admin-password" className="block text-sm font-medium text-foreground">
@@ -324,18 +342,6 @@ const AdminPanel = () => {
                   required
                   className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 pr-10"
                 />
-                {/* Copy button for password
-                <button
-                  type="button"
-                  className="absolute right-2 top-8 text-xs text-muted-foreground hover:text-foreground focus:outline-none"
-                  onClick={() => {
-                    navigator.clipboard.writeText(adminForm.password);
-                  }}
-                  tabIndex={-1}
-                  aria-label="Copy password"
-                >
-                  📋
-                </button> */}
               </div>
               {error && <div className="text-red-500 text-sm text-center">{error}</div>}
               {success && <div className="text-green-500 text-sm text-center">{success}</div>}
@@ -346,19 +352,6 @@ const AdminPanel = () => {
                 loading={adminLoading}
               >
                 Admin Login
-              </Button>
-              
-              {/* Debug button to test form state */}
-              <Button 
-                type="button" 
-                variant="outline" 
-                fullWidth 
-                onClick={() => {
-                  console.log('Current admin form state:', adminForm);
-                  alert(`Email: ${adminForm.email}\nPassword: ${adminForm.password}`);
-                }}
-              >
-                Debug: Check Form State
               </Button>
             </form>
           </div>
@@ -372,10 +365,10 @@ const AdminPanel = () => {
     <div className="min-h-screen bg-background flex flex-col overflow-x-hidden" style={{ background: '#FEFEFE' }}>
       <Header />
       <main className="flex-1 flex flex-col items-center py-16 px-4 w-full max-w-full">
-        <div className="bg-card rounded-lg shadow-lg p-8 max-w-4xl w-full">
+        <div className="bg-card rounded-lg shadow-lg p-8 max-w-5xl w-full">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <div className="w-full sm:w-auto">
-              <h2 className="text-2xl font-serif font-semibold text-foreground">Admin Product Management</h2>
+              <h2 className="text-2xl font-serif font-semibold text-foreground">Admin Panel</h2>
               <div className="text-sm text-muted-foreground mt-1">
                 Status: <span className={isAdminLoggedIn ? "text-green-600" : "text-red-600"}>
                   {isAdminLoggedIn ? "✅ Authenticated" : "❌ Not Authenticated"}
@@ -384,26 +377,34 @@ const AdminPanel = () => {
             </div>
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
               <Button variant="secondary" onClick={checkAdminAuth} className="w-full sm:w-auto">Check Auth</Button>
-              <Button variant="primary" onClick={handleAdd} className="w-full sm:w-auto">Add Product</Button>
+              <Button variant="primary" onClick={fetchProducts} className="w-full sm:w-auto">Refresh Products</Button>
+              <Button variant="primary" onClick={fetchOrders} className="w-full sm:w-auto">Refresh Orders</Button>
               <Button variant="outline" onClick={handleAdminLogout} className="w-full sm:w-auto">Logout</Button>
             </div>
           </div>
-          {error && <div className="text-error text-sm text-center mb-2">{error}</div>}
-          {success && <div className="text-success text-sm text-center mb-2">{success}</div>}
-          {loading ? (
-            <div className="text-center py-8">Loading...</div>
-          ) : (
-            <div className="w-full overflow-x-auto">
-              <table className="w-full text-left border border-border rounded-lg overflow-hidden min-w-full">
-                <thead>
-                  <tr className="bg-muted">
-                    <th className="p-3 text-sm sm:text-base">Name</th>
-                    <th className="p-3 text-sm sm:text-base">Price</th>
-                    <th className="p-3 text-sm sm:text-base hidden sm:table-cell">Description</th>
-                    <th className="p-3 text-sm sm:text-base">Actions</th>
-                  </tr>
-                </thead>
-                                  <tbody>
+
+          {/* Products section */}
+          <div className="mb-10">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xl font-serif font-semibold text-foreground">Products</h3>
+              <Button variant="primary" onClick={() => setShowForm(true)} className="w-auto">Add Product</Button>
+            </div>
+            {error && <div className="text-error text-sm text-center mb-2">{error}</div>}
+            {success && <div className="text-success text-sm text-center mb-2">{success}</div>}
+            {loading ? (
+              <div className="text-center py-8">Loading...</div>
+            ) : (
+              <div className="w-full overflow-x-auto">
+                <table className="w-full text-left border border-border rounded-lg overflow-hidden min-w-full">
+                  <thead>
+                    <tr className="bg-muted">
+                      <th className="p-3 text-sm sm:text-base">Name</th>
+                      <th className="p-3 text-sm sm:text-base">Price</th>
+                      <th className="p-3 text-sm sm:text-base hidden sm:table-cell">Description</th>
+                      <th className="p-3 text-sm sm:text-base">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
                     {products.map((product) => (
                       <tr key={product._id || product.id} className="border-t border-border">
                         <td className="p-3 text-sm sm:text-base">{product.name}</td>
@@ -418,9 +419,67 @@ const AdminPanel = () => {
                       </tr>
                     ))}
                   </tbody>
-              </table>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Orders section */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xl font-serif font-semibold text-foreground">Orders</h3>
+              <div className="flex items-center gap-3">
+                <label className="text-sm flex items-center gap-2">
+                  <input type="checkbox" checked={showPaidOnly} onChange={(e) => setShowPaidOnly(e.target.checked)} />
+                  Show paid only
+                </label>
+                <Button variant="secondary" onClick={fetchOrders}>Refresh</Button>
+              </div>
             </div>
-          )}
+            {ordersLoading ? (
+              <div className="text-center py-8">Loading orders...</div>
+            ) : (
+              <div className="w-full overflow-x-auto">
+                <table className="w-full text-left border border-border rounded-lg overflow-hidden min-w-full">
+                  <thead>
+                    <tr className="bg-muted">
+                      <th className="p-3 text-sm sm:text-base">Order</th>
+                      <th className="p-3 text-sm sm:text-base">User</th>
+                      <th className="p-3 text-sm sm:text-base">Amount</th>
+                      <th className="p-3 text-sm sm:text-base">Items</th>
+                      <th className="p-3 text-sm sm:text-base">Status</th>
+                      <th className="p-3 text-sm sm:text-base">Paid</th>
+                      <th className="p-3 text-sm sm:text-base hidden md:table-cell">RZP Order</th>
+                      <th className="p-3 text-sm sm:text-base hidden lg:table-cell">RZP Payment</th>
+                      <th className="p-3 text-sm sm:text-base hidden xl:table-cell">Verified At</th>
+                      <th className="p-3 text-sm sm:text-base">Created</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredOrders.map((o) => (
+                      <tr key={o._id} className="border-t border-border">
+                        <td className="p-3 text-sm sm:text-base">{shorten(o._id)}</td>
+                        <td className="p-3 text-sm sm:text-base">{shorten(o.userId)}</td>
+                        <td className="p-3 text-sm sm:text-base">{formatINR(o.amount)}</td>
+                        <td className="p-3 text-sm sm:text-base">{Array.isArray(o.items) ? o.items.length : 0}</td>
+                        <td className="p-3 text-sm sm:text-base">{o.status || '-'}</td>
+                        <td className="p-3 text-sm sm:text-base">{o.payment ? '✅' : '❌'}</td>
+                        <td className="p-3 text-sm sm:text-base hidden md:table-cell">{shorten(o.razorpayOrderId)}</td>
+                        <td className="p-3 text-sm sm:text-base hidden lg:table-cell">{shorten(o.razorpayPaymentId)}</td>
+                        <td className="p-3 text-sm sm:text-base hidden xl:table-cell">{o.paymentVerifiedAt ? new Date(o.paymentVerifiedAt).toLocaleString() : '-'}</td>
+                        <td className="p-3 text-sm sm:text-base">{o.createdAt ? new Date(o.createdAt).toLocaleString() : '-'}</td>
+                      </tr>
+                    ))}
+                    {filteredOrders.length === 0 && (
+                      <tr>
+                        <td colSpan={10} className="p-4 text-center text-muted-foreground">No orders to display</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
         {/* Add/Edit Form Modal */}
         {showForm && (
