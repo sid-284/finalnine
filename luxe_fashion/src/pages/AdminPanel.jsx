@@ -445,6 +445,7 @@ const AdminPanel = () => {
                     <tr className="bg-muted">
                       <th className="p-3 text-sm sm:text-base">Order</th>
                       <th className="p-3 text-sm sm:text-base">User</th>
+                      <th className="p-3 text-sm sm:text-base">Email</th>
                       <th className="p-3 text-sm sm:text-base">Amount</th>
                       <th className="p-3 text-sm sm:text-base">Items</th>
                       <th className="p-3 text-sm sm:text-base">Status</th>
@@ -457,22 +458,72 @@ const AdminPanel = () => {
                   </thead>
                   <tbody>
                     {filteredOrders.map((o) => (
-                      <tr key={o._id} className="border-t border-border">
-                        <td className="p-3 text-sm sm:text-base">{shorten(o._id)}</td>
-                        <td className="p-3 text-sm sm:text-base">{shorten(o.userId)}</td>
-                        <td className="p-3 text-sm sm:text-base">{formatINR(o.amount)}</td>
-                        <td className="p-3 text-sm sm:text-base">{Array.isArray(o.items) ? o.items.length : 0}</td>
-                        <td className="p-3 text-sm sm:text-base">{o.status || '-'}</td>
-                        <td className="p-3 text-sm sm:text-base">{o.payment ? '✅' : '❌'}</td>
-                        <td className="p-3 text-sm sm:text-base hidden md:table-cell">{shorten(o.razorpayOrderId)}</td>
-                        <td className="p-3 text-sm sm:text-base hidden lg:table-cell">{shorten(o.razorpayPaymentId)}</td>
-                        <td className="p-3 text-sm sm:text-base hidden xl:table-cell">{o.paymentVerifiedAt ? new Date(o.paymentVerifiedAt).toLocaleString() : '-'}</td>
-                        <td className="p-3 text-sm sm:text-base">{o.createdAt ? new Date(o.createdAt).toLocaleString() : '-'}</td>
-                      </tr>
+                      <React.Fragment key={o._id}>
+                        <tr className="border-t border-border">
+                          <td className="p-3 text-sm sm:text-base align-top">{shorten(o._id)}</td>
+                          <td className="p-3 text-sm sm:text-base align-top">{o.user?.name || shorten(o.userId)}</td>
+                          <td className="p-3 text-sm sm:text-base align-top">{o.user?.email || '-'}</td>
+                          <td className="p-3 text-sm sm:text-base align-top">{formatINR(o.amount)}</td>
+                          <td className="p-3 text-sm sm:text-base align-top">{Array.isArray(o.items) ? o.items.length : 0}</td>
+                          <td className="p-3 text-sm sm:text-base align-top">{o.status || '-'}</td>
+                          <td className="p-3 text-sm sm:text-base align-top">{o.payment ? '✅' : '❌'}</td>
+                          <td className="p-3 text-sm sm:text-base hidden md:table-cell align-top">{shorten(o.razorpayOrderId)}</td>
+                          <td className="p-3 text-sm sm:text-base hidden lg:table-cell align-top">{shorten(o.razorpayPaymentId)}</td>
+                          <td className="p-3 text-sm sm:text-base hidden xl:table-cell align-top">{o.paymentVerifiedAt ? new Date(o.paymentVerifiedAt).toLocaleString() : '-'}</td>
+                          <td className="p-3 text-sm sm:text-base align-top">{o.createdAt ? new Date(o.createdAt).toLocaleString() : '-'}</td>
+                        </tr>
+                        <tr className="border-t border-border bg-muted/10">
+                          <td colSpan={11} className="p-3">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <div className="font-medium mb-2">Shipping Address</div>
+                                <div className="text-sm text-muted-foreground">
+                                  {o.address?.name && <div><span className="font-medium text-foreground">Name:</span> {o.address.name}</div>}
+                                  {o.address?.address && <div><span className="font-medium text-foreground">Address:</span> {o.address.address}</div>}
+                                  {o.address?.city && <div><span className="font-medium text-foreground">City:</span> {o.address.city}</div>}
+                                  {o.address?.state && <div><span className="font-medium text-foreground">State:</span> {o.address.state}</div>}
+                                  {o.address?.zip && <div><span className="font-medium text-foreground">Zip:</span> {o.address.zip}</div>}
+                                  {o.address?.phone && <div><span className="font-medium text-foreground">Phone:</span> {o.address.phone}</div>}
+                                </div>
+                              </div>
+                              <div>
+                                <div className="font-medium mb-2">Items</div>
+                                <div className="overflow-x-auto">
+                                  <table className="min-w-full text-sm">
+                                    <thead>
+                                      <tr className="text-muted-foreground">
+                                        <th className="p-1 text-left">Product</th>
+                                        <th className="p-1 text-left">Size</th>
+                                        <th className="p-1 text-left">Color</th>
+                                        <th className="p-1 text-left">Qty</th>
+                                        <th className="p-1 text-left">Price</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {(o.items || []).map((it, idx) => (
+                                        <tr key={idx} className="border-t border-border/50">
+                                          <td className="p-1">{it.name || it.productName || it.id || '-'}</td>
+                                          <td className="p-1">{it.size || '-'}</td>
+                                          <td className="p-1">{it.color || '-'}</td>
+                                          <td className="p-1">{it.quantity || 1}</td>
+                                          <td className="p-1">{typeof it.price === 'number' ? formatINR(it.price) : '-'}</td>
+                                        </tr>
+                                      ))}
+                                      {(Array.isArray(o.items) && o.items.length === 0) && (
+                                        <tr><td colSpan={5} className="p-2 text-muted-foreground">No items</td></tr>
+                                      )}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      </React.Fragment>
                     ))}
                     {filteredOrders.length === 0 && (
                       <tr>
-                        <td colSpan={10} className="p-4 text-center text-muted-foreground">No orders to display</td>
+                        <td colSpan={11} className="p-4 text-center text-muted-foreground">No orders to display</td>
                       </tr>
                     )}
                   </tbody>

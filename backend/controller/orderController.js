@@ -302,8 +302,27 @@ export const userOrders = async (req,res) => {
     
 export const allOrders = async (req,res) => {
     try {
-        const orders = await Order.find({})
-        res.status(200).json(orders)
+        const orders = await Order.find({}).lean();
+        // Collect unique userIds and fetch minimal user info
+        const userIdSet = new Set(orders.map(o => o.userId).filter(Boolean));
+        const userIds = Array.from(userIdSet);
+        // Convert string ids to ObjectId safely
+        const mongoose = await import('mongoose');
+        const validObjectIds = userIds
+          .map(id => {
+            try { return new mongoose.default.Types.ObjectId(id); } catch { return null; }
+          })
+          .filter(Boolean);
+        let usersById = {};
+        if (validObjectIds.length) {
+            const users = await User.find({ _id: { $in: validObjectIds } }, { name: 1, email: 1 }).lean();
+            users.forEach(u => { usersById[String(u._id)] = { name: u.name, email: u.email }; });
+        }
+        const enriched = orders.map(o => ({
+            ...o,
+            user: usersById[o.userId] || null
+        }));
+        res.status(200).json(enriched);
     } catch (error) {
         console.log(error)
         return res.status(500).json({message:"adminAllOrders error"})
