@@ -21,12 +21,7 @@ app.use(cookieParser())
 // Trust proxy so "secure" cookies work behind proxies (e.g., Render, Vercel)
 app.set('trust proxy', 1)
 // Hardcoded CORS origins for production
-const allowedCorsOrigins = [
-  "https://www.9twoofficial.com",
-  "https://www.9tytwoofficial.com",
-  "https://finalnine.vercel.app",
-  "https://finalnine.onrender.com",
-]
+const allowedCorsOrigins = ['*']
 
 app.use(cors({
   origin: allowedCorsOrigins,
