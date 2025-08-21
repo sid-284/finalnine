@@ -28,6 +28,8 @@ try {
     console.log('Using CORS_ORIGINS from environment:', process.env.CORS_ORIGINS);
   } else {
     allowedCorsOrigins = [
+      'https://9tytwolinen.com',
+      'https://www.9tytwolinen.com',
       'https://www.9tytwooffical.com',
       'https://9tytwooffical.com',
       'http://localhost:3000',
