@@ -40,10 +40,13 @@ try {
 } catch (error) {
   console.error('Error parsing CORS_ORIGINS:', error);
   allowedCorsOrigins = [
+    'https://9tytwolinen.com',
+    'https://www.9tytwolinen.com',
     'https://www.9tytwooffical.com',
     'https://9tytwooffical.com',
     'http://localhost:3000',
     'http://localhost:5173'
+
   ];
   console.log('Falling back to default CORS origins');
 }
