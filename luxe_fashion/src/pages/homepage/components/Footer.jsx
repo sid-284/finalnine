@@ -44,10 +44,7 @@ const Footer = () => {
   const socialLinks = [
     { name: "Instagram", icon: "Instagram", url: "https://www.instagram.com/9tytwoofficial" },
     { name: "Facebook", icon: "Facebook", url: "https://www.facebook.com/@nintytwo/?hr=1&_rdr" },
-    { name: "WhatsApp", icon: "MessageCircle", url: "https://api.whatsapp.com/send/?phone=918281181992&text&type=phone_number&app_absent=0" },
-    { name: "Twitter", icon: "Twitter", url: "#" },
-    { name: "Pinterest", icon: "PinIcon", url: "#" },
-    { name: "YouTube", icon: "Youtube", url: "#" }
+    { name: "WhatsApp", icon: "MessageCircle", url: "https://api.whatsapp.com/send/?phone=918281181992&text&type=phone_number&app_absent=0" }
   ];
 
   const paymentMethods = [
