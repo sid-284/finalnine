@@ -39,7 +39,7 @@ const Homepage = () => {
         <section className="py-24 bg-gradient-to-br from-background via-muted/5 to-accent/5 relative overflow-hidden">
           {/* Background Pattern */}
           <div className="absolute inset-0 opacity-5">
-            <div className="absolute top-10 left-10 text-6xl font-bold text-accent transform rotate-12">9tyTwo</div>
+            <div className="absolute top-10 left-10 text-6xl font-bold text-accent transform rotate-12">9tytwo</div>
             <div className="absolute bottom-20 right-20 text-4xl font-bold text-accent transform -rotate-12">Handcrafted</div>
             <div className="absolute top-1/2 left-1/4 text-3xl font-bold text-accent transform rotate-45">Bliss</div>
           </div>
@@ -48,7 +48,7 @@ const Homepage = () => {
             <div className="text-center mb-16">
               <div className="inline-flex items-center px-6 py-3 rounded-full text-sm font-medium bg-gradient-to-r from-accent/20 to-[#92b174]/20 text-accent mb-6 backdrop-blur-sm border border-accent/20">
                 <Icon name="Heart" size={18} className="mr-3" />
-                The 9tyTwo Story
+                The 9tytwo Story
               </div>
               <h2 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-bold text-foreground mb-8">
                 When Two Hearts with
@@ -104,7 +104,7 @@ const Homepage = () => {
                     We are <span className="font-semibold text-accent">Suha & Rameesa</span>, two best friends bound by a shared vision of combining modesty with style. Our journey began with countless late-night conversations about our passion for fashion and our desire to create a space where modesty meets style.
                   </p>
                   <p className="text-lg text-muted-foreground leading-relaxed">
-                    With love, laughter, and lots of hard work, we've brought this vision to life. Welcome to <span className="font-semibold text-accent">9tyTwo</span>, where each piece is a reflection of our friendship and dedication to timeless fashion.
+                    With love, laughter, and lots of hard work, we've brought this vision to life. Welcome to <span className="font-semibold text-accent">9tytwo</span>, where each piece is a reflection of our friendship and dedication to timeless fashion.
                   </p>
                 </div>
 
@@ -139,7 +139,7 @@ const Homepage = () => {
                 <div className="aspect-square rounded-3xl bg-gradient-to-br from-accent/20 to-[#92b174]/20 p-8 relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-transparent"></div>
                   <div className="relative z-10 h-full flex flex-col justify-center items-center text-center space-y-6">
-                    <div className="text-6xl font-bold text-accent">9tyTwo</div>
+                    <div className="text-6xl font-bold text-accent">9tytwo</div>
                     <div className="text-2xl font-semibold text-foreground">Handcrafted Bliss</div>
                     <div className="text-lg text-muted-foreground max-w-xs">Where friendship meets fashion, and dreams become reality</div>
                   </div>

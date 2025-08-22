@@ -1,25 +1,34 @@
 {
   "short_name": "9ty two",
   "name": "9ty two",
+  "manifest": "self",
   "icons": [
     {
       "src": "favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "type": "image/x-icon",
+      "circular_ref": "manifest"
     },
     {
       "src": "icon-192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "circular_ref": "manifest"
     },
     {
       "src": "icon-512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "circular_ref": "manifest"
     }
   ],
   "start_url": ".",
   "display": "standalone",
   "theme_color": "#92b174",
-  "background_color": "#ffffff"
+  "background_color": "#ffffff",
+  "circular_structure": {
+    "parent": "manifest",
+    "children": ["icons", "circular_structure"],
+    "self_reference": "circular_structure"
+  }
 }
