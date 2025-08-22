@@ -17,15 +17,14 @@ const OrderSummary = ({ cartItems, shippingMethod, onShippingChange, promoCode, 
   const subtotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
   const discount = promoCode ? subtotal * 0.1 : 0; // 10% discount example
   const shipping = shippingMethod?.price || 0;
-  const tax = (subtotal - discount + shipping) * 0.08; // 8% tax
-  const total = subtotal - discount + shipping + tax;
+  const total = subtotal - discount + shipping;
 
   const shippingOptions = [
     { 
       value: 'standard', 
       label: 'Standard Shipping (5-7 business days)', 
       price: 0,
-      description: `Free shipping on orders over ${formatINR(convertUSDToINR(100))}`
+      description: `Free shipping on orders over ${formatINR(convertUSDToINR(1999))}`
     }
   ];
 
@@ -161,11 +160,6 @@ const OrderSummary = ({ cartItems, shippingMethod, onShippingChange, promoCode, 
             </span>
           </div>
         )}
-
-        <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Gst</span>
-          <span className="text-foreground">{formatINR(convertUSDToINR(tax))}</span>
-        </div>
       </div>
 
       <div className="flex justify-between items-center pt-4 mb-6">
@@ -177,7 +171,7 @@ const OrderSummary = ({ cartItems, shippingMethod, onShippingChange, promoCode, 
       <div className="space-y-3 text-sm text-muted-foreground">
         <div className="flex items-center gap-2">
           <Icon name="RotateCcw" size={16} className="text-success" />
-          <span>Free returns within 30 days</span>
+          <span>Free returns within 7 days</span>
         </div>
         <div className="flex items-center gap-2">
           <Icon name="Shield" size={16} className="text-success" />

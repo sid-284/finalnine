@@ -9,6 +9,7 @@ const Input = React.forwardRef(({
     error,
     required = false,
     id,
+    greenGrid = false,
     ...props
 }, ref) => {
     // Generate unique ID if not provided
@@ -16,6 +17,9 @@ const Input = React.forwardRef(({
 
     // Base input classes
     const baseInputClasses = "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50";
+
+    // Green grid outline classes
+    const greenGridClasses = "border-[#92b174] focus-visible:ring-[#92b174] focus-visible:ring-offset-[#92b174]/20 shadow-[0_0_0_1px_rgba(146,177,116,0.2)] focus-visible:shadow-[0_0_0_2px_rgba(146,177,116,0.4)]";
 
     // Checkbox-specific styles
     if (type === "checkbox") {
@@ -70,6 +74,7 @@ const Input = React.forwardRef(({
                 className={cn(
                     baseInputClasses,
                     error && "border-destructive focus-visible:ring-destructive",
+                    greenGrid && greenGridClasses,
                     className
                 )}
                 ref={ref}

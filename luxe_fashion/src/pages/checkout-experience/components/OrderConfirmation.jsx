@@ -1,12 +1,39 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 import { convertUSDToINR, formatINR } from '../../../utils/currency';
 import Image from '../../../components/AppImage';
+import { generateOrderPDF } from '../../../utils/pdfGenerator';
 
 const OrderConfirmation = ({ orderData, onContinueShopping }) => {
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [pdfError, setPdfError] = useState('');
+  
   const estimatedDelivery = new Date();
   estimatedDelivery.setDate(estimatedDelivery.getDate() + 5);
+
+  const handleDownloadPDF = async () => {
+    setIsGeneratingPDF(true);
+    setPdfError('');
+    
+    try {
+      // Prepare order data for PDF
+      const pdfOrderData = {
+        ...orderData,
+        subtotal: orderData.items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+        discount: orderData.discount || 0,
+        shipping: orderData.shipping || 0,
+        total: orderData.total
+      };
+      
+      await generateOrderPDF(pdfOrderData);
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      setPdfError('Failed to generate PDF. Please try again.');
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -36,11 +63,22 @@ const OrderConfirmation = ({ orderData, onContinueShopping }) => {
               })}
             </p>
           </div>
-          <Button variant="outline" size="sm">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleDownloadPDF}
+            loading={isGeneratingPDF}
+            disabled={isGeneratingPDF}
+          >
             <Icon name="Download" size={16} className="mr-2" />
-            Download Receipt
+            {isGeneratingPDF ? 'Generating PDF...' : 'Download Receipt'}
           </Button>
         </div>
+        {pdfError && (
+          <div className="mt-4 p-3 bg-error/10 border border-error/20 rounded-lg">
+            <p className="text-error text-sm">{pdfError}</p>
+          </div>
+        )}
 
         {/* Delivery Information */}
         <div className="grid md:grid-cols-2 gap-6 mb-6">

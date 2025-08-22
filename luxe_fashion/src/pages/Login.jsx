@@ -96,6 +96,7 @@ const Login = () => {
               onChange={handleChange}
               required
               autoComplete="email"
+              greenGrid={true}
             />
             <Input
               label="Password"
@@ -105,6 +106,7 @@ const Login = () => {
               onChange={handleChange}
               required
               autoComplete="current-password"
+              greenGrid={true}
             />
             {error && <div className="text-error text-sm text-center">{error}</div>}
             {success && <div className="text-success text-sm text-center">{success}</div>}

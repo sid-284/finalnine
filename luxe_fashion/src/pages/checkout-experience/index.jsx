@@ -94,8 +94,7 @@ const CheckoutExperience = () => {
     const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
     const discount = promoCode ? subtotal * 0.1 : 0;
     const shipping = shippingMethod.price;
-    const tax = (subtotal - discount + shipping) * 0.08;
-    return subtotal - discount + shipping + tax;
+    return subtotal - discount + shipping;
   };
 
   const handleContinueShopping = () => {
@@ -227,12 +226,12 @@ const CheckoutExperience = () => {
                 <div className="flex flex-col items-center">
                   <Icon name="RotateCcw" size={24} className="text-success mb-2" />
                   <h3 className="font-medium text-foreground mb-1">Easy Returns</h3>
-                  <p className="text-sm text-muted-foreground">30-day return policy</p>
+                  <p className="text-sm text-muted-foreground">7-day return policy</p>
                 </div>
                 <div className="flex flex-col items-center">
                   <Icon name="Truck" size={24} className="text-success mb-2" />
                   <h3 className="font-medium text-foreground mb-1">Fast Shipping</h3>
-                  <p className="text-sm text-muted-foreground">Free on orders ₹8,300+</p>
+                  <p className="text-sm text-muted-foreground">Free on orders ₹2,000+</p>
                 </div>
                 <div className="flex flex-col items-center">
                   <Icon name="Headphones" size={24} className="text-success mb-2" />

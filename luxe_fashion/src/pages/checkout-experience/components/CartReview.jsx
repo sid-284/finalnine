@@ -103,7 +103,7 @@ const CartReview = ({ cartItems, onUpdateQuantity, onRemove, onAddStyling }) => 
           <span>₹{calculateSubtotal().toFixed(2)}</span>
         </div>
         <p className="text-sm text-muted-foreground mt-1">
-          Shipping and taxes calculated at checkout
+          Shipping calculated at checkout
         </p>
       </div>
     </div>
