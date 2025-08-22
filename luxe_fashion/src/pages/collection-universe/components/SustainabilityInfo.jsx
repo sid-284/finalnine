@@ -33,6 +33,17 @@ const SustainabilityInfo = () => {
   return (
     <div className="bg-card py-16 lg:py-24">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Logo Section */}
+        <div className="text-center mb-16">
+          <div className="inline-block mb-8">
+            <img
+              src="/assets/images/logos/9ty-two-logo.svg"
+              alt="9ty two - Handcrafted Bliss"
+              className="h-32 w-auto mx-auto"
+            />
+          </div>
+        </div>
+
         <div className="text-center mb-12">
           <div className="inline-flex items-center space-x-2 bg-success/10 text-success px-4 py-2 rounded-full mb-4">
             <Icon name="Leaf" size={16} />

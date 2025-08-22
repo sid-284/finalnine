@@ -80,10 +80,11 @@ const HeroSection = () => {
           @media (max-width: 768px) {
             #hero-video {
               width: 100vw !important;
-              height: 130vw !important; /* Crop shorter on mobile */
+              height: 100vh !important; /* Full viewport height on mobile */
               min-width: 100vw !important;
-              min-height: 58vh !important;
-              transform: translate(-50%, -50%) scale(1.05) !important; /* slight zoom to crop */
+              min-height: 100vh !important;
+              transform: translate(-50%, -50%) scale(1.2) !important; /* Scale up to fill completely */
+              object-fit: cover !important;
             }
           }
           
@@ -110,34 +111,24 @@ const HeroSection = () => {
           <div className="max-w-4xl">
             <div className="space-y-8 text-white">
               {/* Main Heading */}
-              <div className="space-y-3">
-                <h1 className="text-5xl sm:text-6xl lg:text-8xl font-script font-normal leading-tight text-[#92b174] tracking-[0.005em]">
-                  9ty two
-                </h1>
-                {/* Accent Badge aligned under heading */}
-                <div className="inline-flex items-center px-4 py-1.5 bg-white/10 rounded-full border border-white/10 ml-1">
-                  <span className="text-xs sm:text-sm font-medium tracking-wider uppercase text-accent">
-                    Handcrafted Bliss
-                  </span>
-                </div>
-              </div>
-
-              {/* Enhanced CTAs */}
-              <div className="pt-6 flex flex-col sm:flex-row gap-4">
-                <Link to="/collection-universe">
-                  <Button
-                    variant="default"
-                    size="lg"
-                    className="bg-gradient-to-r from-accent to-[#92b174] text-black hover:from-accent/90 hover:to-[#92b174]/90 px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 group"
-                  >
-                    Explore Collection
-                    <Icon name="ArrowRight" size={24} className="ml-3 group-hover:translate-x-1 transition-transform duration-300" />
-                  </Button>
-                </Link>
-              </div>
+              
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Bottom Center Button */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20">
+        <Link to="/collection-universe">
+          <Button
+            variant="default"
+            size="lg"
+            className="bg-gradient-to-r from-accent to-[#92b174] text-black hover:from-accent/90 hover:to-[#92b174]/90 px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 group"
+          >
+            Explore Collection
+            <Icon name="ArrowRight" size={24} className="ml-3 group-hover:translate-x-1 transition-transform duration-300" />
+          </Button>
+        </Link>
       </div>
     </section>
   );

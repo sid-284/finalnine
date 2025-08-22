@@ -95,11 +95,11 @@ const Header = () => {
             className="flex items-center space-x-3 group hover:scale-105 transition-all duration-300 ease-out"
             onClick={closeMenu}
           >
-            <div className="relative h-12 w-36 overflow-hidden flex items-center">
+            <div className="relative h-20 w-28 overflow-hidden flex items-center">
               <img
                 src="/assets/images/logos/logo.jpeg"
                 alt="Brand logo"
-                className="h-full w-full object-cover"
+                className="h-full w-full object-contain"
               />
             </div>
             
