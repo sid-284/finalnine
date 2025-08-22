@@ -208,7 +208,7 @@ const Homepage = () => {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
             <div className="text-center text-black">
               <h2 className="text-4xl sm:text-5xl font-serif font-bold mb-6 text-black">
-                Ready to Experience 9tyTwo?
+                Ready to Experience 9tytwo?
               </h2>
               <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
                 Join thousands of women who have discovered the perfect blend of modesty, style, and craftsmanship.
