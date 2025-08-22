@@ -8,7 +8,7 @@ const HeroSection = () => {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
 
   // YouTube video ID extracted from the URL
-  const videoId = 'VaXxN31Pwzs';
+  const videoId = 'kgS2WZnPgGw';
   const videoUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1&playsinline=1&enablejsapi=1`;
 
   useEffect(() => {
@@ -34,7 +34,7 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="relative h-screen overflow-hidden bg-background">
+    <section className="relative h-[58vh] sm:h-[65vh] md:h-screen overflow-hidden bg-background">
       {/* Video Background */}
       <div className="absolute inset-0 w-full h-full">
         {/* Loading placeholder */}
@@ -80,10 +80,10 @@ const HeroSection = () => {
           @media (max-width: 768px) {
             #hero-video {
               width: 100vw !important;
-              height: 177.78vw !important; /* 9:16 aspect ratio for mobile */
+              height: 130vw !important; /* Crop shorter on mobile */
               min-width: 100vw !important;
-              min-height: 100vh !important;
-              transform: translate(-50%, -50%) scale(1) !important;
+              min-height: 58vh !important;
+              transform: translate(-50%, -50%) scale(1.05) !important; /* slight zoom to crop */
             }
           }
           
@@ -109,28 +109,18 @@ const HeroSection = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl">
             <div className="space-y-8 text-white">
-              {/* Accent Badge */}
-              <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-accent/20 to-amber-400/20 backdrop-blur-sm rounded-full border border-accent/30">
-                <span className="text-sm font-medium tracking-wider uppercase text-accent">
-                  Handcrafted Bliss
-                </span>
-              </div>
-
-              {/* Main Content */}
-              <div className="space-y-6">
-                <p className="text-lg font-medium tracking-wide uppercase opacity-90 text-accent">
-                  Where Craftsmanship Meets Contemporary Elegance
-                </p>
-                <h1 className="text-5xl sm:text-6xl lg:text-8xl font-display font-bold leading-tight">
-                  <span className="bg-gradient-to-r from-white via-accent to-white bg-clip-text text-transparent">
-                    9ty two
-                  </span>
+              {/* Main Heading */}
+              <div className="space-y-3">
+                <h1 className="text-5xl sm:text-6xl lg:text-8xl font-script font-normal leading-tight text-[#92b174] tracking-[0.005em]">
+                  9ty two
                 </h1>
+                {/* Accent Badge aligned under heading */}
+                <div className="inline-flex items-center px-4 py-1.5 bg-white/10 rounded-full border border-white/10 ml-1">
+                  <span className="text-xs sm:text-sm font-medium tracking-wider uppercase text-accent">
+                    Handcrafted Bliss
+                  </span>
+                </div>
               </div>
-
-              <p className="text-xl sm:text-2xl leading-relaxed opacity-95 max-w-3xl font-light">
-                Discover timeless pieces that transcend seasons, crafted with meticulous attention to detail and sustainable practices. Each creation tells a story of passion, precision, and purpose.
-              </p>
 
               {/* Enhanced CTAs */}
               <div className="pt-6 flex flex-col sm:flex-row gap-4">

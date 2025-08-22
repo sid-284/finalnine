@@ -1,7 +1,7 @@
 import express from "express"
 import { adminLogin, googleLogin, login, logOut, registration } from "../controller/authController.js"
 import User from "../model/userModel.js"
-import { authLimiter } from "../middleware/rateLimiter.js"
+import { authLimiter, adminAuthLimiter } from "../middleware/rateLimiter.js"
 
 const authRoutes = express.Router()
 
@@ -9,7 +9,7 @@ authRoutes.post("/registration", authLimiter, registration)
 authRoutes.post("/login", authLimiter, login)
 authRoutes.get("/logout", logOut)
 authRoutes.post("/googlelogin", authLimiter, googleLogin)
-authRoutes.post("/adminlogin", authLimiter, adminLogin)
+authRoutes.post("/adminlogin", adminAuthLimiter, adminLogin)
 
 // Test route to check users in database
 authRoutes.get("/test-users", async (req, res) => {

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import Header from '../../components/ui/Header';
 import HeroSection from './components/HeroSection';
+import LatestProducts from './components/LatestProducts';
 import Footer from './components/Footer';
 import { useUser } from '../../context/UserContext';
 import Icon from '../../components/AppIcon';
@@ -21,15 +22,18 @@ const Homepage = () => {
       
       {/* User Welcome - Simplified */}
       {user && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-4">
-          <span className="text-lg font-serif text-foreground">Welcome back!</span>
-        </div>
-      )}
+  <div className="max-w-7xl px-4 sm:px-6 lg:px-8 pt-20 pb-4 text-left">
+    <span className="text-lg font-serif text-foreground">Welcome back!</span>
+  </div>
+)}
+
       
       {/* Main Content */}
       <main className="pt-4">
         {/* Hero Section */}
         <HeroSection />
+        {/* Latest Products */}
+        <LatestProducts />
         
         {/* Brand Story Section */}
         <section className="py-24 bg-gradient-to-br from-background via-muted/5 to-accent/5 relative overflow-hidden">
@@ -203,7 +207,7 @@ const Homepage = () => {
           <div className="absolute inset-0 bg-black/10"></div>
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
             <div className="text-center text-black">
-              <h2 className="text-4xl sm:text-5xl font-serif font-bold mb-6">
+              <h2 className="text-4xl sm:text-5xl font-serif font-bold mb-6 text-black">
                 Ready to Experience 9tyTwo?
               </h2>
               <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">

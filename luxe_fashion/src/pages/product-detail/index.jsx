@@ -287,7 +287,7 @@ const ProductDetail = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="pt-16 flex items-center justify-center">
+        <main className="pt-20 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
             <p className="text-muted-foreground">Loading product...</p>
@@ -301,7 +301,7 @@ const ProductDetail = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="pt-16 flex items-center justify-center">
+        <main className="pt-20 flex items-center justify-center">
           <div className="text-center">
             <p className="text-muted-foreground">Product not found</p>
           </div>
@@ -314,7 +314,7 @@ const ProductDetail = () => {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="pt-16">
+      <main className="pt-20">
         {/* Breadcrumb */}
         <div className="bg-muted/30 py-4">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

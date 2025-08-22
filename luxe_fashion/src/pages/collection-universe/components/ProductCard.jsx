@@ -75,8 +75,9 @@ const ProductCard = ({ product, viewMode, index }) => {
     e.preventDefault();
     e.stopPropagation();
     console.log('Add to cart clicked for product:', product.name);
-    console.log('Event target:', e.target);
-    console.log('Event currentTarget:', e.currentTarget);
+    // Log only safe summaries to avoid circular structures (DOM/React Fiber)
+    console.log('Event target tag:', e?.target?.tagName, 'classes:', e?.target?.className);
+    console.log('Event currentTarget tag:', e?.currentTarget?.tagName);
     
     if (!user) {
       console.log('User not logged in, showing login message');
@@ -267,7 +268,7 @@ const ProductCard = ({ product, viewMode, index }) => {
               variant="ghost"
               size="icon"
               onClick={toggleWishlist}
-              className={`absolute top-2 right-2 bg-white/80 hover:bg-white cursor-pointer transition-all duration-200 ${
+              className={`absolute top-2 right-2 bg-white/90 hover:bg-white cursor-pointer transition-all duration-200 z-10 ${
                 isWishlisted ? 'ring-2 ring-red-500' : ''
               }`}
               loading={loading}
@@ -349,6 +350,18 @@ const ProductCard = ({ product, viewMode, index }) => {
             </div>
           </div>
         </div>
+        
+        {/* Success/Error messages for list view */}
+        {showLoginMsg && (
+          <div className="absolute top-12 right-2 bg-card border border-border rounded px-3 py-1 text-xs text-error shadow-lg z-20">
+            Please log in to add items to cart or wishlist
+          </div>
+        )}
+        {showSuccessMsg && (
+          <div className="absolute top-12 right-2 bg-success text-success-foreground rounded px-3 py-1 text-xs shadow-lg z-20">
+            {showSuccessMsg}
+          </div>
+        )}
       </div>
     );
   }
@@ -392,12 +405,12 @@ const ProductCard = ({ product, viewMode, index }) => {
         )}
         
         {/* Always visible Wishlist button */}
-        <div className="absolute top-2 right-2">
+        <div className="absolute top-2 right-2 z-10">
           <Button
             variant="ghost"
             size="icon"
             onClick={toggleWishlist}
-            className={`bg-white/80 hover:bg-white cursor-pointer transition-all duration-200 ${
+            className={`bg-white/90 hover:bg-white cursor-pointer transition-all duration-200 ${
               isWishlisted ? 'ring-2 ring-red-500' : ''
             }`}
             loading={loading}
@@ -415,36 +428,34 @@ const ProductCard = ({ product, viewMode, index }) => {
           </Button>
         </div>
         
-        {/* Quick Actions */}
-        <div className="absolute top-2 right-12 flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        {/* Quick Actions - positioned to avoid overlap */}
+        <div className="absolute top-2 right-16 flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setShowQuickView(true)}
-            className="bg-white/80 hover:bg-white cursor-pointer"
+            className="bg-white/90 hover:bg-white cursor-pointer"
             type="button"
           >
             <Icon name="Eye" size={16} />
           </Button>
         </div>
         
-        {/* Always visible Add to Cart button */}
-        <div className="absolute bottom-2 right-2">
+        {/* Always visible Add to Cart button - moved to avoid overlap */}
+        <div className="absolute bottom-2 right-2 z-10">
           <Button
             variant="default"
             size="sm"
             onClick={handleAddToCart}
-            className="bg-white/90 hover:bg-white text-foreground shadow-lg cursor-pointer"
+            className="bg-white/95 hover:bg-white text-foreground shadow-lg cursor-pointer"
             type="button"
           >
             Add to Cart
           </Button>
         </div>
         
-
-        
-        {/* Badges */}
-        <div className="absolute top-2 left-2 flex flex-col space-y-1">
+        {/* Badges - positioned to avoid overlap */}
+        <div className="absolute top-2 left-2 flex flex-col space-y-1 z-10">
           {product.isNew && (
             <span className="px-2 py-1 bg-accent text-accent-foreground text-xs font-medium rounded">
               New
@@ -462,10 +473,10 @@ const ProductCard = ({ product, viewMode, index }) => {
           )}
         </div>
         
-        {/* Image Dots */}
-        {product.images.length > 1 && (
-          <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
-            {product.images.map((_, index) => (
+        {/* Image Dots - positioned to avoid overlap */}
+        {productImages.length > 1 && (
+          <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1 z-10">
+            {productImages.map((_, index) => (
               <button
                 key={index}
                 onClick={(e) => {
@@ -479,13 +490,15 @@ const ProductCard = ({ product, viewMode, index }) => {
             ))}
           </div>
         )}
+        
+        {/* Success/Error messages - positioned to avoid overlap */}
         {showLoginMsg && (
-          <div className="absolute top-10 right-2 bg-card border border-border rounded px-3 py-1 text-xs text-error shadow-lg z-20">
+          <div className="absolute top-12 right-2 bg-card border border-border rounded px-3 py-1 text-xs text-error shadow-lg z-20">
             Please log in to add items to cart or wishlist
           </div>
         )}
         {showSuccessMsg && (
-          <div className="absolute top-10 right-2 bg-success text-success-foreground rounded px-3 py-1 text-xs shadow-lg z-20">
+          <div className="absolute top-12 right-2 bg-success text-success-foreground rounded px-3 py-1 text-xs shadow-lg z-20">
             {showSuccessMsg}
           </div>
         )}

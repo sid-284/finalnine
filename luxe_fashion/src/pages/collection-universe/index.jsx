@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Header from '../../components/ui/Header';
-import CollectionHero from './components/CollectionHero';
-import DesignerSpotlight from './components/DesignerSpotlight';
 import FilterSidebar from './components/FilterSidebar';
 import SortAndView from './components/SortAndView';
 import ProductGrid from './components/ProductGrid';
@@ -31,30 +29,6 @@ const CollectionUniverse = () => {
   // Polling interval reference
   const pollingIntervalRef = useRef(null);
 
-  // Mock collection data
-  const collectionData = {
-    name: "Modest Elegance",
-    season: "Timeless Collection",
-    description: "When two hearts with one vision come together, beautiful things happen. Our goal is to offer clothing that allows women to express their individuality while staying true to their beliefs. Every item in our store is handpicked with care, and we're proud to offer you something special, created with love by friends for friends.",
-    heroImage: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=800&fit=crop"
-  };
-
-  // Mock designer data
-  const designerData = {
-    name: "Suha & Rameesa",
-    bio: `We are two best friends, bound by a shared vision of combining modesty with style. Our journey began with countless late-night conversations about our passion for fashion and our desire to create a space where modesty meets style.
-
-With love, laughter, and lots of hard work, we've brought this vision to life. Welcome to our modest wear clothing line, where each piece is a reflection of our friendship and dedication to timeless fashion.
-
-Our commitment extends beyond just beautiful clothing – we believe in sustainable practices that honor both our customers and our planet. Every piece is thoughtfully designed to be versatile, durable, and ethically made, ensuring that your wardrobe choices reflect your values.`,
-    quote: "Fashion should empower women to express their individuality while staying true to their beliefs. We design for the woman who values both style and substance.",
-    location: "Founded with Love",
-    founded: "2023",
-    awards: "Friendship & Vision",
-    specialties: ["Modest Fashion", "Sustainable Practices", "Ethical Production", "Timeless Design"],
-    image: "https://images.unsplash.com/photo-1494790108755-2616c9c0b8e3?w=500&h=600&fit=crop"
-  };
-  
   // Fetch products from backend
   const fetchProducts = useCallback(async () => {
     try {
@@ -239,14 +213,8 @@ Our commitment extends beyond just beautiful clothing – we believe in sustaina
 
         {/* Main Content - Takes remaining width */}
         <div className="flex-1 w-full">
-          {/* Collection Hero */}
-          <CollectionHero collection={collectionData} />
-
-          {/* Designer Spotlight */}
-          <DesignerSpotlight designer={designerData} />
-
           {/* Products Section */}
-          <div>
+          <div className="pt-20">
             {/* Sort and View Controls */}
             <SortAndView
               sortBy={sortBy}
@@ -257,8 +225,8 @@ Our commitment extends beyond just beautiful clothing – we believe in sustaina
               totalProducts={filteredProducts.length}
             />
 
-            {/* Product Grid */}
-            <div className="px-4 lg:px-6 pb-8">
+            {/* Product Grid with proper spacing */}
+            <div className="px-4 lg:px-6 pb-8 pt-6">
               {loading ? (
                 <div className="text-center py-8">
                   <p>Loading products...</p>

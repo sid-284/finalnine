@@ -1,7 +1,8 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Gruppo', ui-sans-serif, system-ui, sans-serif;
+  font-family: 'Georgia', ui-serif, serif;
+  font-weight: 300;
   background: linear-gradient(135deg, #FFD1DC 0%, #B5E3FF 100%);
   min-height: 100vh;
   overflow-x: hidden;
@@ -12,11 +13,13 @@ body {
   box-sizing: border-box;
   line-height: normal;
   font-family: inherit;
+  font-weight: inherit;
   margin: unset;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Gruppo', ui-sans-serif, system-ui, sans-serif;
+  font-family: 'Georgia', ui-serif, serif;
+  font-weight: 400;
   color: #FFB6B9;
   letter-spacing: 1px;
 }

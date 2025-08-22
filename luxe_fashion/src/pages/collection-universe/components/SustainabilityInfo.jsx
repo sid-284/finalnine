@@ -70,22 +70,7 @@ const SustainabilityInfo = () => {
         </div>
 
         {/* Impact Stats */}
-        <div className="bg-muted rounded-lg p-8 mb-16">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-            <div>
-              <div className="text-3xl font-bold text-foreground mb-2">2.5M</div>
-              <div className="text-muted-foreground">Liters of water saved</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-foreground mb-2">850</div>
-              <div className="text-muted-foreground">Tons of CO₂ offset</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-foreground mb-2">1,200</div>
-              <div className="text-muted-foreground">Artisans supported</div>
-            </div>
-          </div>
-        </div>
+        
 
         {/* Natural vs Synthetic Materials */}
         <div className="bg-gradient-to-r from-destructive/5 to-success/5 rounded-lg p-8 mb-16">
@@ -174,11 +159,16 @@ const SustainabilityInfo = () => {
         </div>
 
         {/* Call to Action */}
-        <div className="text-center">
-          <Button variant="outline" size="lg" iconName="ExternalLink" iconPosition="right">
-            Learn More About Our Impact
-          </Button>
-        </div>
+<div className="text-center">
+  <Button
+    variant="outline"
+    size="lg"
+    onClick={() => (window.location.href = "/")}
+  >
+    Home
+  </Button>
+</div>
+
       </div>
     </div>
   );

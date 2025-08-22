@@ -61,7 +61,7 @@ const Header = () => {
     };
     checkAdmin();
     return () => { cancelled = true; };
-  }, [backendUser]);
+  }, [backendUser, location.pathname]);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -83,8 +83,8 @@ const Header = () => {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-out ${
         isScrolled
-          ? 'bg-background/98 backdrop-blur-xl shadow-xl border-b border-accent/10'
-          : 'bg-gradient-to-b from-background/90 to-background/70 backdrop-blur-md'
+          ? 'bg-white shadow-xl border-b border-gray-200'
+          : 'bg-white border-b border-gray-100'
       }`}
     >
       <div className="w-full">
@@ -95,13 +95,12 @@ const Header = () => {
             className="flex items-center space-x-3 group hover:scale-105 transition-all duration-300 ease-out"
             onClick={closeMenu}
           >
-            <div className="relative">
+            <div className="relative h-12 w-36 overflow-hidden flex items-center">
               <img
-                src="/assets/images/logos/9ty-two-logo.svg"
-                alt="9ty two logo"
-                className="h-28 w-auto transition-all duration-300 group-hover:brightness-110"
+                src="/assets/images/logos/logo.jpeg"
+                alt="Brand logo"
+                className="h-full w-full object-cover"
               />
-              <div className="absolute -inset-2 bg-gradient-to-r from-accent/20 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm"></div>
             </div>
             
           </Link>
@@ -125,6 +124,22 @@ const Header = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-accent/0 via-accent/5 to-accent/0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </Link>
             ))}
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className={`relative px-4 py-3 text-sm font-medium transition-all duration-300 rounded-full group ${
+                  location.pathname === '/admin'
+                    ? 'text-accent bg-accent/10 shadow-sm'
+                    : 'text-muted-foreground hover:text-accent hover:bg-accent/5'
+                }`}
+              >
+                <span className="relative z-10">Admin</span>
+                {location.pathname === '/admin' && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-accent/20 to-accent/10 rounded-full animate-pulse" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-r from-accent/0 via-accent/5 to-accent/0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              </Link>
+            )}
           </nav>
 
           {/* Enhanced Desktop Actions */}
@@ -186,8 +201,8 @@ const Header = () => {
                   )}
                 </Button>
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-lg shadow-lg py-2 z-50">
-                    <div className="px-4 py-2 border-b border-border">
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-50">
+                    <div className="px-4 py-2 border-b border-gray-200">
                       <div className="text-sm font-medium text-foreground">{user.email}</div>
                     </div>
                     {isAdmin && (
@@ -196,7 +211,7 @@ const Header = () => {
                           navigate('/admin');
                           closeUserMenu();
                         }}
-                        className="w-full px-4 py-2 text-left text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors duration-200"
+                        className="w-full px-4 py-2 text-left text-sm text-muted-foreground hover:text-foreground hover:bg-gray-50 transition-colors duration-200"
                       >
                         <div className="flex items-center space-x-2">
                           <Icon name="Shield" size={16} />
@@ -209,7 +224,7 @@ const Header = () => {
                         navigate('/profile');
                         closeUserMenu();
                       }}
-                      className="w-full px-4 py-2 text-left text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors duration-200"
+                      className="w-full px-4 py-2 text-left text-sm text-muted-foreground hover:text-foreground hover:bg-gray-50 transition-colors duration-200"
                     >
                       <div className="flex items-center space-x-2">
                         <Icon name="User" size={16} />
@@ -222,7 +237,7 @@ const Header = () => {
                         closeUserMenu();
                         navigate('/homepage');
                       }}
-                      className="w-full px-4 py-2 text-left text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors duration-200"
+                      className="w-full px-4 py-2 text-left text-sm text-muted-foreground hover:text-foreground hover:bg-gray-50 transition-colors duration-200"
                     >
                       <div className="flex items-center space-x-2">
                         <Icon name="LogOut" size={16} />
@@ -243,14 +258,14 @@ const Header = () => {
                   <Icon name="User" size={20} />
                 </Button>
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-lg shadow-lg py-2 z-50">
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-50">
                     {isAdmin && (
                       <button
                         onClick={() => {
                           navigate('/admin');
                           closeUserMenu();
                         }}
-                        className="w-full px-4 py-2 text-left text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors duration-200"
+                        className="w-full px-4 py-2 text-left text-sm text-muted-foreground hover:text-foreground hover:bg-gray-50 transition-colors duration-200"
                       >
                         <div className="flex items-center space-x-2">
                           <Icon name="Shield" size={16} />
@@ -263,7 +278,7 @@ const Header = () => {
                         navigate('/profile');
                         closeUserMenu();
                       }}
-                      className="w-full px-4 py-2 text-left text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors duration-200"
+                      className="w-full px-4 py-2 text-left text-sm text-muted-foreground hover:text-foreground hover:bg-gray-50 transition-colors duration-200"
                     >
                       <div className="flex items-center space-x-2">
                         <Icon name="User" size={16} />
@@ -324,7 +339,7 @@ const Header = () => {
               ? 'max-h-96 opacity-100' :'max-h-0 opacity-0'
           }`}
         >
-          <div className="px-4 py-4 bg-card border-t border-border">
+          <div className="px-4 py-4 bg-white border-t border-gray-200">
             <nav className="space-y-2">
               {navigationItems.map((item) => (
                 <Link
@@ -333,7 +348,7 @@ const Header = () => {
                   onClick={closeMenu}
                   className={`flex items-center space-x-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors duration-300 ${
                     location.pathname === item.path
-                      ? 'bg-accent/10 text-accent' :'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                      ? 'bg-accent/10 text-accent' :'text-muted-foreground hover:text-foreground hover:bg-gray-50'
                   }`}
                 >
                   <Icon name={item.icon} size={18} />
@@ -342,7 +357,7 @@ const Header = () => {
               ))}
             </nav>
             
-            <div className="mt-4 pt-4 border-t border-border">
+            <div className="mt-4 pt-4 border-t border-gray-200">
               <div className="flex items-center justify-between">
                 <Button
                   variant="ghost"

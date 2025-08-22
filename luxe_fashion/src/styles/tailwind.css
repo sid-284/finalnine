@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Gruppo:wght@400&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -44,10 +43,10 @@
     --color-surface: #F8F8F8; /* subtle-depth */
 
     /* Typography */
-    --font-sans: 'Gruppo', system-ui, sans-serif;
-    --font-serif: 'Gruppo', Georgia, serif;
-    --font-display: 'Gruppo', system-ui, sans-serif;
-    --font-italic: 'Gruppo', system-ui, sans-serif;
+    --font-sans: 'Georgia', ui-serif, serif;
+    --font-serif: 'Georgia', ui-serif, serif;
+    --font-display: 'Georgia', ui-serif, serif;
+    --font-italic: 'Georgia', ui-serif, serif;
 
     /* Shadows */
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -92,11 +91,13 @@
   body {
     @apply bg-background text-foreground font-sans;
     font-feature-settings: "rlig" 1, "calt" 1;
+    font-weight: 300;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-serif;
     font-feature-settings: "ss01" 1, "liga" 1;
+    font-weight: 400;
   }
 }
 
@@ -164,6 +165,42 @@
   .font-italic {
     font-family: var(--font-italic);
     font-style: italic;
+  }
+
+  .font-thin {
+    font-weight: 100;
+  }
+
+  .font-extralight {
+    font-weight: 200;
+  }
+
+  .font-light {
+    font-weight: 300;
+  }
+
+  .font-normal {
+    font-weight: 400;
+  }
+
+  .font-medium {
+    font-weight: 500;
+  }
+
+  .font-semibold {
+    font-weight: 600;
+  }
+
+  .font-bold {
+    font-weight: 700;
+  }
+
+  .font-extrabold {
+    font-weight: 800;
+  }
+
+  .font-black {
+    font-weight: 900;
   }
 }
 
