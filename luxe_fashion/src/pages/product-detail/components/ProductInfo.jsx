@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 import Select from '../../../components/ui/Select';
+import SizeChartModal from '../../../components/ui/SizeChartModal';
 import { convertUSDToINR, formatINR } from '../../../utils/currency';
 import { useCart } from '../../../context/CartContext';
 import { useUser } from '../../../context/UserContext';
@@ -17,6 +18,7 @@ const ProductInfo = ({ product }) => {
   const [showSuccessMsg, setShowSuccessMsg] = useState('');
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [showSizeChart, setShowSizeChart] = useState(false);
 
   const { addToCart } = useCart();
   const { user, backendAuthenticated } = useUser();
@@ -272,7 +274,11 @@ const ProductInfo = ({ product }) => {
       <div>
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-medium text-foreground">Size</h3>
-          <button className="text-sm text-accent hover:underline">
+          <button
+            onClick={() => setShowSizeChart(true)}
+            className="text-sm text-accent hover:text-accent/80 underline flex items-center space-x-1 transition-colors duration-300"
+          >
+            <Icon name="Ruler" size={14} />
             <span>Size Guide</span>
           </button>
         </div>
@@ -392,25 +398,13 @@ const ProductInfo = ({ product }) => {
       )}
 
       {/* Share */}
-      <div className="border-t border-border pt-6">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-foreground">Share</span>
-          <div className="flex items-center space-x-2">
-            <button className="w-8 h-8 rounded-full bg-muted hover:bg-muted-foreground/20 transition-colors duration-300 flex items-center justify-center">
-              <Icon name="Facebook" size={16} />
-            </button>
-            <button className="w-8 h-8 rounded-full bg-muted hover:bg-muted-foreground/20 transition-colors duration-300 flex items-center justify-center">
-              <Icon name="Twitter" size={16} />
-            </button>
-            <button className="w-8 h-8 rounded-full bg-muted hover:bg-muted-foreground/20 transition-colors duration-300 flex items-center justify-center">
-              <Icon name="Instagram" size={16} />
-            </button>
-            <button className="w-8 h-8 rounded-full bg-muted hover:bg-muted-foreground/20 transition-colors duration-300 flex items-center justify-center">
-              <Icon name="Share2" size={16} />
-            </button>
-          </div>
-        </div>
-      </div>
+      
+
+      {/* Size Chart Modal */}
+      <SizeChartModal 
+        open={showSizeChart} 
+        onClose={() => setShowSizeChart(false)} 
+      />
     </div>
   );
 };

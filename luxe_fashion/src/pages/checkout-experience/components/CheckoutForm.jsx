@@ -259,19 +259,7 @@ const CheckoutForm = ({ onSubmit, isGuest, onToggleGuest }) => {
         </Button>
         
         {/* Test button */}
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          fullWidth
-          className="mt-2"
-          onClick={() => {
-            console.log('Test button clicked');
-            alert('Test button works!');
-          }}
-        >
-          Test Button
-        </Button>
+      
       </form>
     </div>
   );
