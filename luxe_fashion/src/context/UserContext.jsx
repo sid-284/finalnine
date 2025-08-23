@@ -43,7 +43,7 @@ export const UserProvider = ({ children }) => {
       // Store the token if it's in the response (for cross-origin scenarios)
       if (response && response.token) {
         localStorage.setItem('authToken', response.token);
-        console.log('Token stored for cross-origin authentication');
+        console.log('Token stored for cross-origin authentication:', response.token.substring(0, 20) + '...');
       } else {
         console.log('No token found in response');
       }

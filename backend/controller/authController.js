@@ -104,7 +104,10 @@ export const login = async (req,res) => {
           path: '/',
         })
     console.log('Login successful:', user._id);
-    return res.status(201).json({ ...user.toObject(), token })
+    // Return user data with token for cross-origin requests
+    const userResponse = user.toObject();
+    userResponse.token = token;
+    return res.status(201).json(userResponse)
 
     } catch (error) {
          console.error("login error:", error)
@@ -163,7 +166,10 @@ export const googleLogin = async (req,res) => {
           path: '/',
         })
     console.log('Google login successful:', user._id);
-    return res.status(200).json(user)
+    // Return user data with token for cross-origin requests
+    const userResponse = user.toObject();
+    userResponse.token = token;
+    return res.status(200).json(userResponse)
 
     } catch (error) {
          console.error("googleLogin error:", error)

@@ -59,11 +59,6 @@ const Header = () => {
         return;
       }
       
-      // TEMPORARY: Disable admin check until authentication is fixed
-      console.log('Admin check temporarily disabled');
-      if (!cancelled) setIsAdmin(false);
-      return;
-      
       try {
         console.log('Checking admin status...');
         const res = await apiFetch('/user/getadmin');
