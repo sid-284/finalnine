@@ -15,7 +15,7 @@ const CheckoutForm = ({ onSubmit, isGuest, onToggleGuest }) => {
     city: '',
     state: '',
     zipCode: '',
-    country: 'US',
+    country: 'India',
     phone: '',
     deliveryInstructions: '',
     createAccount: false,
