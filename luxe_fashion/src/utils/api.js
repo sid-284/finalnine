@@ -22,17 +22,12 @@ export async function apiFetch(endpoint, options = {}) {
       ...(options.headers || {}),
     };
     
-    // Fallback: attach Authorization bearer if we have an admin token
-    try {
-      const adminToken = localStorage.getItem('adminToken');
-      if (adminToken && !headers['Authorization']) {
-        headers['Authorization'] = `Bearer ${adminToken}`;
-      }
-    } catch {}
+    // Note: We rely on HTTP-only cookies for authentication, not Authorization headers
+    // The backend middleware (isAuth.js) checks for tokens in cookies first, then Authorization headers
 
     const response = await fetch(url, {
       ...options,
-      credentials: 'include', // for cookies/auth
+      credentials: 'include', // This is crucial for sending cookies with requests
       headers,
     });
     

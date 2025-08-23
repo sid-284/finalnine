@@ -19,6 +19,7 @@ export const UserProvider = ({ children }) => {
     }
 
     try {
+      console.log('Attempting backend authentication for:', firebaseUser.email);
       const response = await apiFetch('/auth/login', {
         method: 'POST',
         body: JSON.stringify({
@@ -28,10 +29,16 @@ export const UserProvider = ({ children }) => {
           avatar: firebaseUser.photoURL || '',
         }),
       });
+      console.log('Backend authentication successful:', response);
       setBackendAuthenticated(true);
       setBackendUser(response);
     } catch (error) {
       console.error('Backend authentication failed:', error);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.status,
+        data: error.data
+      });
       setBackendAuthenticated(false);
       setBackendUser(null);
     }

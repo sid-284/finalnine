@@ -14,7 +14,7 @@ const Header = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const location = useLocation();
-  const { user, logout, backendUser } = useUser();
+  const { user, logout, backendUser, backendAuthenticated } = useUser();
   const navigate = useNavigate();
   const { cart, clearCart } = useCart();
 
@@ -52,10 +52,19 @@ const Header = () => {
         if (!cancelled) setIsAdmin(true);
         return;
       }
+      
+      // Only check admin status if user is authenticated with backend
+      if (!backendAuthenticated) {
+        if (!cancelled) setIsAdmin(false);
+        return;
+      }
+      
       try {
+        console.log('Checking admin status...');
         const res = await apiFetch('/user/getadmin');
         if (!cancelled) setIsAdmin(!!res && res.role === 'admin');
       } catch (e) {
+        console.error('Admin check failed:', e);
         if (!cancelled) setIsAdmin(false);
       }
     };

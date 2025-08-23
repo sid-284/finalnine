@@ -22,18 +22,29 @@ export const CartProvider = ({ children }) => {
 
   // Sync cart with backend when user is authenticated
   const syncCartWithBackend = useCallback(async () => {
-    if (!backendAuthenticated) return;
+    if (!backendAuthenticated) {
+      console.log('Skipping cart sync - user not authenticated with backend');
+      return;
+    }
     
     try {
       setLoading(true);
+      console.log('Syncing cart with backend...');
       const backendCart = await apiFetch('/cart/get', { method: 'POST' });
       
       if (backendCart && backendCart.items) {
+        console.log('Cart synced successfully:', backendCart.items);
         setCart(backendCart.items);
         localStorage.setItem('cart', JSON.stringify(backendCart.items));
       }
     } catch (error) {
       console.error('Failed to sync cart with backend:', error);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.status,
+        data: error.data
+      });
+      // Don't throw the error - just log it and continue with local cart
     } finally {
       setLoading(false);
     }
