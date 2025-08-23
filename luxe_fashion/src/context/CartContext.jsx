@@ -27,6 +27,10 @@ export const CartProvider = ({ children }) => {
       return;
     }
     
+    // TEMPORARY: Disable backend sync until authentication is fixed
+    console.log('Backend cart sync temporarily disabled - using local cart only');
+    return;
+    
     try {
       setLoading(true);
       console.log('Syncing cart with backend...');
@@ -80,6 +84,10 @@ export const CartProvider = ({ children }) => {
       return [...prev, { ...item }];
     });
 
+    // TEMPORARY: Disable backend sync until authentication is fixed
+    console.log('Backend cart sync temporarily disabled - using local cart only');
+    return;
+
     // Sync with backend if authenticated
     if (backendAuthenticated) {
       try {
@@ -97,6 +105,10 @@ export const CartProvider = ({ children }) => {
     console.log('Removing from cart:', { itemId, size, color });
     
     setCart((prev) => prev.filter((i) => !(i.id === itemId && i.size === size && i.color === color)));
+
+    // TEMPORARY: Disable backend sync until authentication is fixed
+    console.log('Backend cart sync temporarily disabled - using local cart only');
+    return;
 
     // Sync with backend if authenticated
     if (backendAuthenticated) {
@@ -126,6 +138,10 @@ export const CartProvider = ({ children }) => {
           : i
       )
     );
+
+    // TEMPORARY: Disable backend sync until authentication is fixed
+    console.log('Backend cart sync temporarily disabled - using local cart only');
+    return;
 
     // Sync with backend if authenticated
     if (backendAuthenticated) {

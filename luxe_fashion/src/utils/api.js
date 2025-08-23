@@ -24,15 +24,31 @@ const storeToken = (token) => {
   }
 };
 
+// Temporary workaround: Since the backend doesn't return tokens in response body yet,
+// we'll use a different approach. For now, let's implement a simple session-based approach
+const getSessionToken = () => {
+  // Try to get from localStorage first
+  const storedToken = getStoredToken();
+  if (storedToken) {
+    return storedToken;
+  }
+  
+  // For now, we'll use a simple approach - store a session identifier
+  // This is a temporary workaround until the backend is updated
+  let sessionId = localStorage.getItem('sessionId');
+  if (!sessionId) {
+    sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('sessionId', sessionId);
+  }
+  return sessionId;
+};
+
 export async function apiFetch(endpoint, options = {}) {
   try {
     if (!API_BASE_URL) {
       throw new Error('API base URL is not configured. Set VITE_API_BASE_URL in your environment.');
     }
     const url = `${API_BASE_URL}${endpoint}`;
-    
-    // Debug: Log the request URL
-    console.log('API Request:', url);
     
     // Prepare headers - don't set Content-Type for FormData
     let headers = {};
@@ -54,10 +70,6 @@ export async function apiFetch(endpoint, options = {}) {
       ...(options.headers || {}),
     };
     
-    // Debug: Log cookies being sent
-    console.log('Cookies being sent:', document.cookie);
-    console.log('Authorization header:', headers['Authorization'] ? 'Present' : 'Missing');
-    
     // Note: We rely on HTTP-only cookies for authentication, not Authorization headers
     // The backend middleware (isAuth.js) checks for tokens in cookies first, then Authorization headers
 
@@ -65,13 +77,6 @@ export async function apiFetch(endpoint, options = {}) {
       ...options,
       credentials: 'include', // This is crucial for sending cookies with requests
       headers,
-    });
-    
-    // Debug: Log response headers
-    console.log('Response headers:', {
-      'set-cookie': response.headers.get('set-cookie'),
-      'content-type': response.headers.get('content-type'),
-      'status': response.status
     });
     
     // Handle different response types
@@ -87,7 +92,6 @@ export async function apiFetch(endpoint, options = {}) {
     // Store token if it's in the response (for cross-origin scenarios)
     if (data && typeof data === 'object' && data.token) {
       storeToken(data.token);
-      console.log('Token stored from response');
     }
     
     if (!response.ok) {

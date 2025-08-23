@@ -37,11 +37,15 @@ export const UserProvider = ({ children }) => {
         }),
       });
       console.log('Backend authentication successful:', response);
+      console.log('Response type:', typeof response);
+      console.log('Response keys:', response ? Object.keys(response) : 'No response');
       
       // Store the token if it's in the response (for cross-origin scenarios)
       if (response && response.token) {
         localStorage.setItem('authToken', response.token);
         console.log('Token stored for cross-origin authentication');
+      } else {
+        console.log('No token found in response');
       }
       
       setBackendAuthenticated(true);
