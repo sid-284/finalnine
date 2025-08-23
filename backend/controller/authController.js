@@ -104,7 +104,7 @@ export const login = async (req,res) => {
           path: '/',
         })
     console.log('Login successful:', user._id);
-    return res.status(201).json(user)
+    return res.status(201).json({ ...user.toObject(), token })
 
     } catch (error) {
          console.error("login error:", error)

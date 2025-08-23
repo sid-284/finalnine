@@ -1,12 +1,38 @@
 // Utility for making API requests
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+// Get stored token for cross-origin requests
+const getStoredToken = () => {
+  try {
+    return localStorage.getItem('authToken');
+  } catch (error) {
+    console.error('Error getting stored token:', error);
+    return null;
+  }
+};
+
+// Store token for cross-origin requests
+const storeToken = (token) => {
+  try {
+    if (token) {
+      localStorage.setItem('authToken', token);
+    } else {
+      localStorage.removeItem('authToken');
+    }
+  } catch (error) {
+    console.error('Error storing token:', error);
+  }
+};
+
 export async function apiFetch(endpoint, options = {}) {
   try {
     if (!API_BASE_URL) {
       throw new Error('API base URL is not configured. Set VITE_API_BASE_URL in your environment.');
     }
     const url = `${API_BASE_URL}${endpoint}`;
+    
+    // Debug: Log the request URL
+    console.log('API Request:', url);
     
     // Prepare headers - don't set Content-Type for FormData
     let headers = {};
@@ -16,11 +42,21 @@ export async function apiFetch(endpoint, options = {}) {
       headers['Content-Type'] = 'application/json';
     }
     
+    // Add Authorization header if we have a stored token (for cross-origin requests)
+    const storedToken = getStoredToken();
+    if (storedToken && !headers['Authorization']) {
+      headers['Authorization'] = `Bearer ${storedToken}`;
+    }
+    
     // Merge with any provided headers
     headers = {
       ...headers,
       ...(options.headers || {}),
     };
+    
+    // Debug: Log cookies being sent
+    console.log('Cookies being sent:', document.cookie);
+    console.log('Authorization header:', headers['Authorization'] ? 'Present' : 'Missing');
     
     // Note: We rely on HTTP-only cookies for authentication, not Authorization headers
     // The backend middleware (isAuth.js) checks for tokens in cookies first, then Authorization headers
@@ -31,6 +67,13 @@ export async function apiFetch(endpoint, options = {}) {
       headers,
     });
     
+    // Debug: Log response headers
+    console.log('Response headers:', {
+      'set-cookie': response.headers.get('set-cookie'),
+      'content-type': response.headers.get('content-type'),
+      'status': response.status
+    });
+    
     // Handle different response types
     const contentType = response.headers.get('content-type');
     let data;
@@ -39,6 +82,12 @@ export async function apiFetch(endpoint, options = {}) {
       data = await response.json();
     } else {
       data = await response.text();
+    }
+    
+    // Store token if it's in the response (for cross-origin scenarios)
+    if (data && typeof data === 'object' && data.token) {
+      storeToken(data.token);
+      console.log('Token stored from response');
     }
     
     if (!response.ok) {

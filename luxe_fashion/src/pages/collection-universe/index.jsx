@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+  import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Header from '../../components/ui/Header';
 import FilterSidebar from './components/FilterSidebar';
 import SortAndView from './components/SortAndView';

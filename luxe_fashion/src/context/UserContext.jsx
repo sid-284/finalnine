@@ -20,6 +20,13 @@ export const UserProvider = ({ children }) => {
 
     try {
       console.log('Attempting backend authentication for:', firebaseUser.email);
+      console.log('Firebase user data:', {
+        email: firebaseUser.email,
+        uid: firebaseUser.uid,
+        displayName: firebaseUser.displayName,
+        photoURL: firebaseUser.photoURL
+      });
+      
       const response = await apiFetch('/auth/login', {
         method: 'POST',
         body: JSON.stringify({
@@ -30,6 +37,13 @@ export const UserProvider = ({ children }) => {
         }),
       });
       console.log('Backend authentication successful:', response);
+      
+      // Store the token if it's in the response (for cross-origin scenarios)
+      if (response && response.token) {
+        localStorage.setItem('authToken', response.token);
+        console.log('Token stored for cross-origin authentication');
+      }
+      
       setBackendAuthenticated(true);
       setBackendUser(response);
     } catch (error) {
@@ -52,6 +66,9 @@ export const UserProvider = ({ children }) => {
       console.error('Backend logout failed:', error);
     }
     
+    // Clear stored token
+    localStorage.removeItem('authToken');
+    
     // Logout from Firebase
     await signOut(auth);
     
@@ -61,11 +78,14 @@ export const UserProvider = ({ children }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log('Firebase auth state changed:', firebaseUser ? `User: ${firebaseUser.email}` : 'No user');
       setUser(firebaseUser);
       
       if (firebaseUser) {
+        console.log('Firebase user authenticated, attempting backend authentication...');
         await authenticateWithBackend(firebaseUser);
       } else {
+        console.log('No Firebase user, clearing backend authentication');
         setBackendAuthenticated(false);
         setBackendUser(null);
       }

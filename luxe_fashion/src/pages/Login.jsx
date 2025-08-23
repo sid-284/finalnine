@@ -27,20 +27,8 @@ const Login = () => {
     setSuccess('');
     setLoading(true);
     try {
-      // Firebase login
-      const userCredential = await signInWithEmailAndPassword(auth, form.email, form.password);
-      const user = userCredential.user;
-      
-      // Send to backend
-      await apiFetch('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ 
-          email: form.email, 
-          firebaseUid: user.uid,
-          name: user.displayName || '',
-          avatar: user.photoURL || '',
-        }),
-      });
+      // Firebase login only - UserContext will handle backend authentication
+      await signInWithEmailAndPassword(auth, form.email, form.password);
       
       setSuccess('Login successful! Redirecting...');
       setTimeout(() => navigate('/homepage'), 1200);
@@ -57,19 +45,8 @@ const Login = () => {
     setSuccess('');
     setLoading(true);
     try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      
-      // Send to backend
-      await apiFetch('/auth/googlelogin', {
-        method: 'POST',
-        body: JSON.stringify({
-          email: user.email,
-          firebaseUid: user.uid,
-          name: user.displayName || '',
-          avatar: user.photoURL || '',
-        }),
-      });
+      // Firebase Google login only - UserContext will handle backend authentication
+      await signInWithPopup(auth, provider);
       
       setSuccess('Login successful! Redirecting...');
       setTimeout(() => navigate('/homepage'), 1200);
