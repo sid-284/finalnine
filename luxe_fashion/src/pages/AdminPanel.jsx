@@ -607,6 +607,7 @@ const AdminPanel = () => {
                       <option value="men">Men</option>
                       <option value="women">Women</option>
                       <option value="kids">Kids</option>
+                      <option value="hijab">Hijab</option>
                     </select>
                   </div>
                   <div>

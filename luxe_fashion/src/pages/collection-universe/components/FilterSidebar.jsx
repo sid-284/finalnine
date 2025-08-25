@@ -29,7 +29,8 @@ const FilterSidebar = ({ isOpen, onClose, filters, onFilterChange }) => {
       options: [
         { id: 'men', label: 'Men' },
         { id: 'women', label: 'Women' },
-        { id: 'kids', label: 'Kids' }
+        { id: 'kids', label: 'Kids' },
+        { id: 'hijab', label: 'Hijab' }
       ]
     },
     {
