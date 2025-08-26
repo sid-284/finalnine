@@ -115,7 +115,14 @@ const AdminPanel = () => {
     setAdminForm({ email: '', password: '' });
     setSuccess('');
     setError('');
-    localStorage.removeItem('adminToken');
+    // Clear all possible auth artifacts
+    try {
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('sessionId');
+    } catch (_) {
+      // ignore storage errors
+    }
   };
 
   const fetchProducts = async () => {

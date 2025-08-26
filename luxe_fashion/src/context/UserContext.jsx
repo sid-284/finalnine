@@ -70,8 +70,14 @@ export const UserProvider = ({ children }) => {
       console.error('Backend logout failed:', error);
     }
     
-    // Clear stored token
-    localStorage.removeItem('authToken');
+    // Clear stored tokens and session ids (both user and any admin artifacts)
+    try {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('sessionId');
+    } catch (_) {
+      // ignore storage errors
+    }
     
     // Logout from Firebase
     await signOut(auth);
