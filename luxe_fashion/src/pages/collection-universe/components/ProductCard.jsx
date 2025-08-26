@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Image from '../../../components/AppImage';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
@@ -20,6 +20,7 @@ const setWishlist = (list) => {
 };
 
 const ProductCard = ({ product, viewMode, index }) => {
+  const navigate = useNavigate();
   const { user, backendAuthenticated } = useUser();
   const { addToCart } = useCart();
   // Use MongoDB _id if available, otherwise fall back to numeric id
@@ -80,9 +81,8 @@ const ProductCard = ({ product, viewMode, index }) => {
     console.log('Event currentTarget tag:', e?.currentTarget?.tagName);
     
     if (!user) {
-      console.log('User not logged in, showing login message');
-      setShowLoginMsg(true);
-      setTimeout(() => setShowLoginMsg(false), 1500);
+      console.log('User not logged in, redirecting to login');
+      navigate('/login');
       return;
     }
     
@@ -115,15 +115,14 @@ const ProductCard = ({ product, viewMode, index }) => {
     console.log('Backend authenticated:', backendAuthenticated);
     
     if (!user) {
-      console.log('User not logged in, showing login message');
-      setShowLoginMsg(true);
-      setTimeout(() => setShowLoginMsg(false), 1500);
+      console.log('User not logged in, redirecting to login');
+      navigate('/login');
       return;
     }
     
     setLoading(true);
     
-    // Use backend if authenticated, otherwise use localStorage
+    // Use backend if authenticated
     if (backendAuthenticated) {
       try {
         if (isWishlisted) {
@@ -173,26 +172,6 @@ const ProductCard = ({ product, viewMode, index }) => {
         setShowSuccessMsg(isWishlisted ? 'Removed from wishlist!' : 'Added to wishlist!');
         setTimeout(() => setShowSuccessMsg(''), 2000);
       }
-    } else {
-      // Use localStorage when backend is not authenticated
-      console.log('💾 Using localStorage for wishlist (backend not authenticated)');
-      let wishlist = getWishlist();
-      if (isWishlisted) {
-        console.log('🗑️ Removing from wishlist (localStorage)');
-        wishlist = wishlist.filter(id => id?.toString() !== pid?.toString());
-        setIsWishlisted(false);
-        setShowSuccessMsg('Removed from wishlist!');
-      } else {
-        console.log('💖 Adding to wishlist (localStorage)');
-        // Check if ID already exists before adding
-        if (!wishlist.some(id => id?.toString() === pid?.toString())) {
-          wishlist.push(pid);
-        }
-        setIsWishlisted(true);
-        setShowSuccessMsg('Added to wishlist!');
-      }
-      setWishlist(wishlist);
-      setTimeout(() => setShowSuccessMsg(''), 2000);
     }
     setLoading(false);
     console.log('=== END WISHLIST TOGGLE DEBUG ===');

@@ -82,8 +82,7 @@ const ProductInfo = ({ product }) => {
 
   const handleAddToCart = () => {
     if (!user) {
-      setShowLoginMsg(true);
-      setTimeout(() => setShowLoginMsg(false), 3000);
+      navigate('/login');
       return;
     }
 
@@ -117,11 +116,16 @@ const ProductInfo = ({ product }) => {
       return;
     }
 
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
     setWishlistLoading(true);
 
     try {
-      // Use backend if authenticated, otherwise use localStorage
-      if (user && backendAuthenticated) {
+      // Use backend if authenticated
+      if (backendAuthenticated) {
         if (isWishlisted) {
           console.log('🗑️ Removing from wishlist (backend)');
           const response = await apiFetch('/user/wishlist/remove', {
@@ -154,26 +158,6 @@ const ProductInfo = ({ product }) => {
           setShowSuccessMsg('Added to wishlist!');
           setTimeout(() => setShowSuccessMsg(''), 2000);
         }
-      } else {
-        // Use localStorage when backend is not authenticated
-        console.log('💾 Using localStorage for wishlist (backend not authenticated)');
-        let wishlist = getWishlist();
-        if (isWishlisted) {
-          console.log('🗑️ Removing from wishlist (localStorage)');
-          wishlist = wishlist.filter(id => id?.toString() !== pid?.toString());
-          setIsWishlisted(false);
-          setShowSuccessMsg('Removed from wishlist!');
-        } else {
-          console.log('💖 Adding to wishlist (localStorage)');
-          // Check if ID already exists before adding
-          if (!wishlist.some(id => id?.toString() === pid?.toString())) {
-            wishlist.push(pid);
-          }
-          setIsWishlisted(true);
-          setShowSuccessMsg('Added to wishlist!');
-        }
-        setWishlist(wishlist);
-        setTimeout(() => setShowSuccessMsg(''), 2000);
       }
     } catch (error) {
       console.error('❌ Backend wishlist failed, using localStorage fallback:', error);

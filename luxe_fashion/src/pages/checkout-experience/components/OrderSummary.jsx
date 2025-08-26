@@ -190,7 +190,18 @@ const OrderSummary = ({ cartItems, shippingMethod, onShippingChange, promoCode, 
       {/* Customer Service */}
       <div className="mt-6 pt-4 border-t border-border">
         <p className="text-sm text-muted-foreground mb-2">Need help?</p>
-        <Button variant="ghost" size="sm" className="text-accent hover:text-accent/80 p-0">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-accent hover:text-accent/80 p-0"
+          onClick={() =>
+            window.open(
+              'https://api.whatsapp.com/send/?phone=918281181992&text=Hi%20there%2C%20I%20need%20help%20with%20my%20order.&type=phone_number&app_absent=0',
+              '_blank'
+            )
+          }
+          aria-label="Chat with us on WhatsApp at +91 82811 81992"
+        >
           <Icon name="MessageCircle" size={16} className="mr-2" />
           Chat with us
         </Button>
