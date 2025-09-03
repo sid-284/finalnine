@@ -85,6 +85,13 @@ const ProductCard = ({ product, viewMode, index }) => {
       navigate('/login');
       return;
     }
+
+    // Check if product is out of stock
+    if (product.outOfStock) {
+      setShowSuccessMsg('This product is currently out of stock');
+      setTimeout(() => setShowSuccessMsg(''), 2000);
+      return;
+    }
     
     const cartItem = {
       id: pid,
@@ -311,11 +318,14 @@ const ProductCard = ({ product, viewMode, index }) => {
               <Button 
                 variant="default" 
                 size="sm" 
-                className="flex-1 cursor-pointer"
+                className={`flex-1 cursor-pointer ${
+                  product.outOfStock ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
                 onClick={handleAddToCart}
                 type="button"
+                disabled={product.outOfStock}
               >
-                Add to Cart
+                {product.outOfStock ? 'Out of Stock' : 'Add to Cart'}
               </Button>
               <Button 
                 variant="outline" 
@@ -426,10 +436,13 @@ const ProductCard = ({ product, viewMode, index }) => {
             variant="default"
             size="sm"
             onClick={handleAddToCart}
-            className="bg-white/95 hover:bg-white text-foreground shadow-lg cursor-pointer"
+            className={`bg-white/95 hover:bg-white text-foreground shadow-lg cursor-pointer ${
+              product.outOfStock ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
             type="button"
+            disabled={product.outOfStock}
           >
-            Add to Cart
+            {product.outOfStock ? 'Out of Stock' : 'Add to Cart'}
           </Button>
         </div>
         
@@ -448,6 +461,16 @@ const ProductCard = ({ product, viewMode, index }) => {
           {product.sustainability && (
             <span className="px-2 py-1 bg-success text-success-foreground text-xs font-medium rounded">
               Eco
+            </span>
+          )}
+          {product.outOfStock && (
+            <span className="px-2 py-1 bg-red-500 text-white text-xs font-medium rounded">
+              Out of Stock
+            </span>
+          )}
+          {product.bestseller && (
+            <span className="px-2 py-1 bg-accent text-accent-foreground text-xs font-medium rounded">
+              Best Seller
             </span>
           )}
         </div>
@@ -515,11 +538,14 @@ const ProductCard = ({ product, viewMode, index }) => {
         <Button 
           variant="default" 
           size="sm" 
-          className="w-full cursor-pointer"
+          className={`w-full cursor-pointer ${
+            product.outOfStock ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
           onClick={handleAddToCart}
           type="button"
+          disabled={product.outOfStock}
         >
-          Add to Cart
+          {product.outOfStock ? 'Out of Stock' : 'Add to Cart'}
         </Button>
       </div>
     </div>

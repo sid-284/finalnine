@@ -4,7 +4,7 @@ import Product from "../model/productModel.js"
 
 export const addProduct = async (req,res) => {
     try {
-        let {name,description,price,category,subCategory,sizes,bestseller} = req.body
+        let {name,description,price,category,subCategory,sizes,bestseller,outOfStock} = req.body
 
         // Handle image uploads - only store uploaded images
         let image1 = null;
@@ -55,6 +55,7 @@ export const addProduct = async (req,res) => {
             subCategory: subCategory || category, // Use category as fallback
             sizes: sizes ? JSON.parse(sizes) : ["XS", "S", "M", "L", "XL"],
             bestseller: bestseller === "true" ? true : false,
+            outOfStock: outOfStock === "true" ? true : false,
             date: Date.now()
         }
 
@@ -133,17 +134,24 @@ export const productDetails = async (req,res) => {
 export const updateProduct = async (req,res) => {
     try {
         let {id} = req.params;
-        let {name,description,price,category,subCategory,sizes,bestseller} = req.body
+        let {name,description,price,category,subCategory,sizes,bestseller,outOfStock} = req.body
         
-        let updateData = {
-            name,
-            description,
-            price: Number(price),
-            category,
-            subCategory: subCategory || category,
-            sizes: sizes ? JSON.parse(sizes) : undefined,
-            bestseller: bestseller === "true" ? true : (bestseller === "false" ? false : undefined)
-        }
+        console.log('UpdateProduct request body:', req.body);
+        console.log('Extracted fields:', { name, description, price, category, subCategory, sizes, bestseller, outOfStock });
+        
+        let updateData = {};
+        
+        // Only add fields that are provided
+        if (name !== undefined) updateData.name = name;
+        if (description !== undefined) updateData.description = description;
+        if (price !== undefined) updateData.price = Number(price);
+        if (category !== undefined) updateData.category = category;
+        if (subCategory !== undefined) updateData.subCategory = subCategory || category;
+        if (sizes !== undefined) updateData.sizes = sizes ? JSON.parse(sizes) : undefined;
+        if (bestseller !== undefined) updateData.bestseller = bestseller === "true" ? true : (bestseller === "false" ? false : undefined);
+        if (outOfStock !== undefined) updateData.outOfStock = outOfStock === "true" ? true : (outOfStock === "false" ? false : undefined);
+        
+        console.log('Final updateData:', updateData);
         
         // Handle image uploads if provided
         if (req.files && req.files.image1 && req.files.image1[0]) {
@@ -166,7 +174,7 @@ export const updateProduct = async (req,res) => {
             updateData.image4 = image4
         }
         
-        const product = await Product.findByIdAndUpdate(id, updateData, {new: true})
+        const product = await Product.findByIdAndUpdate(id, updateData, {new: true, runValidators: false})
         if (!product) {
             return res.status(404).json({message: 'Product not found'})
         }
@@ -188,5 +196,34 @@ export const deleteProduct = async (req,res) => {
     } catch (error) {
         console.log("DeleteProduct error")
         return res.status(500).json({message:`DeleteProduct error ${error}`})
+    }
+}
+
+export const updateStockStatus = async (req,res) => {
+    try {
+        let {id} = req.params;
+        let {outOfStock} = req.body
+        
+        console.log('UpdateStockStatus request:', { id, outOfStock });
+        
+        if (outOfStock === undefined) {
+            return res.status(400).json({message: 'outOfStock field is required'})
+        }
+        
+        const product = await Product.findByIdAndUpdate(
+            id, 
+            { outOfStock: outOfStock === "true" ? true : false }, 
+            {new: true, runValidators: false}
+        )
+        
+        if (!product) {
+            return res.status(404).json({message: 'Product not found'})
+        }
+        
+        console.log('Stock status updated successfully:', product);
+        return res.status(200).json(product)
+    } catch (error) {
+        console.log("UpdateStockStatus error:", error)
+        return res.status(500).json({message:`UpdateStockStatus error: ${error.message}`})
     }
 }

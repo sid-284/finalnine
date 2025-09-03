@@ -47,6 +47,10 @@ const productSchema = new mongoose.Schema({
     },
     bestseller:{
         type:Boolean
+    },
+    outOfStock:{
+        type:Boolean,
+        default:false
     }
 
 },{timestamps:true})

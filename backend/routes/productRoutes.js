@@ -1,5 +1,5 @@
 import express from 'express'
-import { addProduct, listProduct, productDetails, updateProduct, deleteProduct } from '../controller/productController.js'
+import { addProduct, listProduct, productDetails, updateProduct, deleteProduct, updateStockStatus } from '../controller/productController.js'
 import upload from '../middleware/multer.js'
 import adminAuth from "../middleware/adminAuth.js"
 
@@ -23,6 +23,7 @@ productRoutes.put("/update/:id", isAuth, adminAuth, upload.fields([
     {name:"image4",maxCount:1}
 ]), updateProduct)
 productRoutes.delete("/delete/:id", isAuth, adminAuth, deleteProduct)
+productRoutes.put("/update-stock/:id", isAuth, adminAuth, updateStockStatus)
 
 
 export default productRoutes

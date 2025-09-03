@@ -92,6 +92,13 @@ const ProductInfo = ({ product }) => {
       return;
     }
 
+    // Check if product is out of stock
+    if (product.outOfStock) {
+      setShowSuccessMsg('This product is currently out of stock');
+      setTimeout(() => setShowSuccessMsg(''), 3000);
+      return;
+    }
+
     const cartItem = {
       id: product.id,
       name: product.name,
@@ -184,6 +191,18 @@ const ProductInfo = ({ product }) => {
       {/* Brand & Title */}
       <div>
         <p className="text-sm text-muted-foreground mb-1">{product.brand}</p>
+        <div className="flex items-center gap-3 mb-2">
+          {product.bestseller && (
+            <span className="px-3 py-1 bg-accent text-accent-foreground text-sm font-medium rounded-full">
+              Best Seller
+            </span>
+          )}
+          {product.outOfStock && (
+            <span className="px-3 py-1 bg-red-500 text-white text-sm font-medium rounded-full">
+              Out of Stock
+            </span>
+          )}
+        </div>
         <h1 className="text-2xl md:text-3xl font-serif font-semibold text-foreground mb-2">
           {product.name}
         </h1>

@@ -21,6 +21,7 @@ const AdminPanel = () => {
     subCategory: '', 
     sizes: '["XS", "S", "M", "L", "XL"]',
     bestseller: false,
+    outOfStock: false,
     image1: null,
     image2: null,
     image3: null,
@@ -181,6 +182,7 @@ const AdminPanel = () => {
       subCategory: '', 
       sizes: '["XS", "S", "M", "L", "XL"]',
       bestseller: false,
+      outOfStock: false,
       image1: null,
       image2: null,
       image3: null,
@@ -206,6 +208,7 @@ const AdminPanel = () => {
       subCategory: product.subCategory || product.category,
       sizes: JSON.stringify(product.sizes || ["XS", "S", "M", "L", "XL"]),
       bestseller: product.bestseller || false,
+      outOfStock: product.outOfStock || false,
       image1: null,
       image2: null,
       image3: null,
@@ -250,6 +253,7 @@ const AdminPanel = () => {
       body.append('subCategory', form.subCategory);
       body.append('sizes', form.sizes);
       body.append('bestseller', form.bestseller.toString());
+      body.append('outOfStock', form.outOfStock.toString());
       
       // Add images if they exist
       if (form.image1) {
@@ -305,6 +309,24 @@ const AdminPanel = () => {
     } catch (error) {
       console.error('Submit error:', error);
       setError('Failed to save: ' + (error.message || 'Unknown error'));
+    }
+  };
+
+  const handleToggleStock = async (product) => {
+    const newStatus = !product.outOfStock;
+    const statusText = newStatus ? 'out of stock' : 'in stock';
+    if (!window.confirm(`Are you sure you want to mark this product as ${statusText}?`)) return;
+    try {
+      const response = await apiFetch(`/product/update-stock/${product._id || product.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ outOfStock: newStatus }),
+      });
+      console.log('Stock update response:', response);
+      setSuccess(`Product marked as ${statusText}`);
+      fetchProducts();
+    } catch (err) {
+      console.error('Failed to update stock:', err);
+      setError('Failed to update stock status');
     }
   };
 
@@ -408,6 +430,7 @@ const AdminPanel = () => {
                       <th className="p-3 text-sm sm:text-base">Name</th>
                       <th className="p-3 text-sm sm:text-base">Price</th>
                       <th className="p-3 text-sm sm:text-base hidden sm:table-cell">Description</th>
+                      <th className="p-3 text-sm sm:text-base">Stock Status</th>
                       <th className="p-3 text-sm sm:text-base">Actions</th>
                     </tr>
                   </thead>
@@ -417,10 +440,103 @@ const AdminPanel = () => {
                         <td className="p-3 text-sm sm:text-base">{product.name}</td>
                         <td className="p-3 text-sm sm:text-base">{formatINR(convertUSDToINR(product.price))}</td>
                         <td className="p-3 text-sm sm:text-base hidden sm:table-cell">{product.description}</td>
+                        <td className="p-3 text-sm sm:text-base">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            product.outOfStock 
+                              ? 'bg-red-100 text-red-800' 
+                              : 'bg-green-100 text-green-800'
+                          }`}>
+                            {product.outOfStock ? 'Out of Stock' : 'In Stock'}
+                          </span>
+                        </td>
                         <td className="p-3">
                           <div className="flex flex-col sm:flex-row gap-2">
                             <Button variant="outline" size="sm" onClick={() => handleEdit(product)} className="w-full sm:w-auto">Edit</Button>
                             <Button variant="destructive" size="sm" onClick={() => handleDelete(product._id || product.id)} className="w-full sm:w-auto">Delete</Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Stock Management section */}
+          <div className="mb-10">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xl font-serif font-semibold text-foreground">Stock Management</h3>
+              <Button variant="secondary" onClick={fetchProducts} className="w-auto">Refresh</Button>
+            </div>
+            {loading ? (
+              <div className="text-center py-8">Loading...</div>
+            ) : (
+              <div className="w-full overflow-x-auto">
+                <table className="w-full text-left border border-border rounded-lg overflow-hidden min-w-full">
+                  <thead>
+                    <tr className="bg-muted">
+                      <th className="p-3 text-sm sm:text-base">Product</th>
+                      <th className="p-3 text-sm sm:text-base">Current Status</th>
+                      <th className="p-3 text-sm sm:text-base">Size Stock</th>
+                      <th className="p-3 text-sm sm:text-base">Quick Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {products.map((product) => (
+                      <tr key={product._id || product.id} className="border-t border-border">
+                        <td className="p-3 text-sm sm:text-base">
+                          <div>
+                            <div className="font-medium">{product.name}</div>
+                            <div className="text-xs text-muted-foreground">{product.category}</div>
+                          </div>
+                        </td>
+                        <td className="p-3 text-sm sm:text-base">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            product.outOfStock 
+                              ? 'bg-red-100 text-red-800' 
+                              : 'bg-green-100 text-green-800'
+                          }`}>
+                            {product.outOfStock ? 'Out of Stock' : 'In Stock'}
+                          </span>
+                        </td>
+                        <td className="p-3 text-sm sm:text-base">
+                          <div className="space-y-1">
+                            {product.sizes && product.sizes.map((size) => {
+                              const sizeKey = typeof size === 'string' ? size : size.value || size;
+                              const stockInfo = product.sizeStock && product.sizeStock[sizeKey];
+                              const isOutOfStock = stockInfo ? stockInfo.status === 'out_of_stock' : false;
+                              const quantity = stockInfo ? stockInfo.quantity : 0;
+                              
+                              return (
+                                <div key={sizeKey} className="flex items-center justify-between text-xs">
+                                  <span className="font-medium">{sizeKey}:</span>
+                                  <span className={`px-1 py-0.5 rounded text-xs ${
+                                    isOutOfStock ? 'bg-red-100 text-red-700' : 
+                                    quantity < 5 ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
+                                  }`}>
+                                    {isOutOfStock ? 'Out' : quantity}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </td>
+                        <td className="p-3 text-sm sm:text-base">
+                          <div className="flex flex-col gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => handleToggleStock(product)}
+                              className={`w-full ${
+                                product.outOfStock 
+                                  ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100' 
+                                  : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
+                              }`}
+                            >
+                              {product.outOfStock ? 'Mark In Stock' : 'Mark Out of Stock'}
+                            </Button>
+
                           </div>
                         </td>
                       </tr>
@@ -649,6 +765,18 @@ const AdminPanel = () => {
                         className="rounded border-border"
                       />
                       <span className="text-sm font-medium">Bestseller</span>
+                    </label>
+                  </div>
+                  <div>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        name="outOfStock"
+                        checked={form.outOfStock}
+                        onChange={handleFormChange}
+                        className="rounded border-border"
+                      />
+                      <span className="text-sm font-medium">Out of Stock</span>
                     </label>
                   </div>
                   <div>
