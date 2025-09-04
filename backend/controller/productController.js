@@ -1,6 +1,15 @@
 import uploadOnCloudinary from "../config/cloudinary.js"
 import Product from "../model/productModel.js"
 
+// Normalize boolean-like inputs coming from forms/JSON ("true"/"false" or booleans)
+const parseBoolean = (value) => {
+    if (value === undefined || value === null) return undefined;
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'string') return value.toLowerCase() === 'true';
+    // Fallback: use JS truthiness but only for explicit boolean-ish values
+    return Boolean(value);
+}
+
 
 export const addProduct = async (req,res) => {
     try {
@@ -54,8 +63,8 @@ export const addProduct = async (req,res) => {
             category,
             subCategory: subCategory || category, // Use category as fallback
             sizes: sizes ? JSON.parse(sizes) : ["XS", "S", "M", "L", "XL"],
-            bestseller: bestseller === "true" ? true : false,
-            outOfStock: outOfStock === "true" ? true : false,
+            bestseller: parseBoolean(bestseller) ?? false,
+            outOfStock: parseBoolean(outOfStock) ?? false,
             date: Date.now()
         }
 
@@ -148,8 +157,8 @@ export const updateProduct = async (req,res) => {
         if (category !== undefined) updateData.category = category;
         if (subCategory !== undefined) updateData.subCategory = subCategory || category;
         if (sizes !== undefined) updateData.sizes = sizes ? JSON.parse(sizes) : undefined;
-        if (bestseller !== undefined) updateData.bestseller = bestseller === "true" ? true : (bestseller === "false" ? false : undefined);
-        if (outOfStock !== undefined) updateData.outOfStock = outOfStock === "true" ? true : (outOfStock === "false" ? false : undefined);
+        if (bestseller !== undefined) updateData.bestseller = parseBoolean(bestseller);
+        if (outOfStock !== undefined) updateData.outOfStock = parseBoolean(outOfStock);
         
         console.log('Final updateData:', updateData);
         
@@ -212,7 +221,7 @@ export const updateStockStatus = async (req,res) => {
         
         const product = await Product.findByIdAndUpdate(
             id, 
-            { outOfStock: outOfStock === "true" ? true : false }, 
+            { outOfStock: parseBoolean(outOfStock) ?? false }, 
             {new: true, runValidators: false}
         )
         
