@@ -38,11 +38,11 @@ const SortAndView = ({
               variant="outline"
               size="sm"
               onClick={onFilterToggle}
-              iconName="Filter"
+              iconName="Menu"
               iconPosition="left"
               className="lg:hidden"
             >
-              Filters
+              
             </Button>
             
             <div className="hidden sm:flex items-center space-x-4">
