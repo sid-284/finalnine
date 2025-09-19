@@ -7,7 +7,6 @@ import { Checkbox } from '../../../components/ui/Checkbox';
 
 const CheckoutForm = ({ onSubmit, isGuest, onToggleGuest }) => {
   const [formData, setFormData] = useState({
-    email: '',
     firstName: '',
     lastName: '',
     address: '',
@@ -53,7 +52,6 @@ const CheckoutForm = ({ onSubmit, isGuest, onToggleGuest }) => {
   const validateForm = () => {
     const newErrors = {};
     
-    if (!formData.email) newErrors.email = 'Email is required';
     if (!formData.firstName) newErrors.firstName = 'First name is required';
     if (!formData.lastName) newErrors.lastName = 'Last name is required';
     if (!formData.address) newErrors.address = 'Address is required';
@@ -100,15 +98,7 @@ const CheckoutForm = ({ onSubmit, isGuest, onToggleGuest }) => {
         <div className="space-y-4">
           <h3 className="font-medium text-foreground">Contact Information</h3>
           
-          <Input
-            label="Email Address"
-            type="email"
-            value={formData.email}
-            onChange={(e) => handleInputChange('email', e.target.value)}
-            error={errors.email}
-            placeholder="your@email.com"
-            required
-          />
+          
 
           <Input
             label="Phone Number"
