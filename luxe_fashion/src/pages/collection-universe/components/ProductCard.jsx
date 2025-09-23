@@ -196,6 +196,7 @@ const ProductCard = ({ product, viewMode, index }) => {
 
   const nextImage = (e) => {
     e.preventDefault();
+    e.stopPropagation();
     setCurrentImageIndex((prev) => 
       prev === productImages.length - 1 ? 0 : prev + 1
     );
@@ -203,6 +204,7 @@ const ProductCard = ({ product, viewMode, index }) => {
 
   const prevImage = (e) => {
     e.preventDefault();
+    e.stopPropagation();
     setCurrentImageIndex((prev) => 
       prev === 0 ? productImages.length - 1 : prev - 1
     );
@@ -220,14 +222,17 @@ const ProductCard = ({ product, viewMode, index }) => {
     return (
       <div className="bg-card rounded-lg overflow-hidden shadow-sm border border-border hover:shadow-md transition-shadow duration-300">
         <div className="flex flex-col md:flex-row">
-          <div className="relative md:w-80 h-64 md:h-auto">
-            <Link to={`/product?id=${pid}`}>
-              <Image
-                src={productImages[currentImageIndex] || '/assets/images/no_image.png'}
-                alt={product.name}
-                className="w-full h-full object-cover"
-              />
-            </Link>
+          <div
+            className="relative md:w-80 h-64 md:h-auto cursor-pointer"
+            onClick={() => navigate(`/product-detail?id=${pid}`)}
+            role="link"
+            aria-label={product.name}
+          >
+            <Image
+              src={productImages[currentImageIndex] || '/assets/images/no_image.png'}
+              alt={product.name}
+              className="w-full h-full object-cover"
+            />
             
             {productImages.length > 1 && (
               <div className="absolute inset-0 flex items-center justify-between p-2 opacity-0 hover:opacity-100 transition-opacity duration-300">
@@ -275,8 +280,8 @@ const ProductCard = ({ product, viewMode, index }) => {
           <div className="flex-1 p-6">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h3 className="font-sans font-semibold text-foreground mb-1">
-                  <Link to={`/product?id=${pid}`} className="hover:text-accent transition-colors">
+            <h3 className="font-sans font-semibold text-foreground mb-1">
+              <Link to={`/product-detail?id=${pid}`} className="hover:text-accent transition-colors">
                     {product.name}
                   </Link>
                 </h3>
@@ -362,14 +367,17 @@ const ProductCard = ({ product, viewMode, index }) => {
 
   return (
     <div className={`bg-card rounded-lg overflow-hidden shadow-sm border border-border hover:shadow-md transition-all duration-300 group ${viewMode === 'masonry' ? 'break-inside-avoid mb-6' : ''}`}>
-      <div className={`relative ${cardHeight}`}>
-        <Link to={`/product?id=${pid}`}>
-          <Image
-            src={productImages[currentImageIndex] || '/assets/images/no_image.png'}
-            alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-        </Link>
+      <div
+        className={`relative ${cardHeight} cursor-pointer`}
+        onClick={() => navigate(`/product-detail?id=${pid}`)}
+        role="link"
+        aria-label={product.name}
+      >
+        <Image
+          src={productImages[currentImageIndex] || '/assets/images/no_image.png'}
+          alt={product.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
         
         {/* Image Navigation */}
         {productImages.length > 1 && (
@@ -422,7 +430,7 @@ const ProductCard = ({ product, viewMode, index }) => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setShowQuickView(true)}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowQuickView(true); }}
             className="bg-white/90 hover:bg-white cursor-pointer"
             type="button"
           >
@@ -483,6 +491,7 @@ const ProductCard = ({ product, viewMode, index }) => {
                 key={index}
                 onClick={(e) => {
                   e.preventDefault();
+                  e.stopPropagation();
                   setCurrentImageIndex(index);
                 }}
                 className={`w-2 h-2 rounded-full transition-colors ${
