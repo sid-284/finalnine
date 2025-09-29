@@ -53,28 +53,6 @@ export async function apiFetch(endpoint, options = {}) {
     // Prepare headers - don't set Content-Type for FormData
     let headers = {};
     
-    // Lightweight client platform info for backend (helps tailor payment/iOS flows)
-    const getClientPlatformHeaders = () => {
-      try {
-        const nav = typeof navigator !== 'undefined' ? navigator : null;
-        const ua = nav?.userAgent || '';
-        const platform = (nav?.platform || '').toString();
-        const vendor = (nav?.vendor || '').toString();
-        // iOS detection (covers iPhone, iPad on iOS 13+ that report as Mac)
-        const isIOS = /iPad|iPhone|iPod/.test(ua) || (/(Macintosh)/.test(ua) && 'ontouchend' in (typeof window !== 'undefined' ? window : {}));
-        const isSafari = /Safari\//.test(ua) && !/Chrome\//.test(ua) && !/CriOS\//.test(ua) && !/FxiOS\//.test(ua);
-        return {
-          'X-Client-Platform': platform || (isIOS ? 'iOS' : ''),
-          'X-Client-Vendor': vendor || undefined,
-          'X-Client-User-Agent': ua.slice(0, 512) || undefined,
-          'X-Client-Is-IOS': String(!!isIOS),
-          'X-Client-Is-Safari': String(!!isSafari),
-        };
-      } catch {
-        return {};
-      }
-    };
-    
     // Only set Content-Type if it's not FormData and not already set
     if (!(options.body instanceof FormData) && !options.headers?.['Content-Type']) {
       headers['Content-Type'] = 'application/json';
@@ -89,7 +67,6 @@ export async function apiFetch(endpoint, options = {}) {
     // Merge with any provided headers
     headers = {
       ...headers,
-      ...getClientPlatformHeaders(),
       ...(options.headers || {}),
     };
     
