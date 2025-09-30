@@ -4,41 +4,32 @@ import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 
 const HeroSection = () => {
-  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  // YouTube video ID extracted from the URL
-  const videoId = '-QJ-yKgpGCM';
-  const videoUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1&playsinline=1&enablejsapi=1`;
+  const images = [
+    'https://res.cloudinary.com/dv7i5i3ed/image/upload/v1759233345/WhatsApp_Image_2025-09-30_at_16.52.29_vlqlvc.jpg',
+    'https://res.cloudinary.com/dv7i5i3ed/image/upload/v1759233582/WhatsApp_Image_2025-09-30_at_16.52.29_1_g6ev52.jpg',
+    'https://res.cloudinary.com/dv7i5i3ed/image/upload/v1759233618/WhatsApp_Image_2025-09-30_at_16.52.29_2_cbofhd.jpg'
+  ];
 
   useEffect(() => {
-    // Simulate video loading
-    const timer = setTimeout(() => {
-      setIsVideoLoaded(true);
-      setIsVideoPlaying(true);
-    }, 1000);
+    setIsLoaded(true);
+    
+    // Auto-rotate images every 5 seconds
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    }, 5000);
 
-    return () => clearTimeout(timer);
+    return () => clearInterval(interval);
   }, []);
-
-  const toggleVideo = () => {
-    const iframe = document.getElementById('hero-video');
-    if (iframe && iframe.contentWindow) {
-      if (isVideoPlaying) {
-        iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-      } else {
-        iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-      }
-      setIsVideoPlaying(!isVideoPlaying);
-    }
-  };
 
   return (
     <section className="relative h-[58vh] sm:h-[65vh] md:h-screen overflow-hidden bg-background">
-      {/* Video Background */}
+      {/* Image Background */}
       <div className="absolute inset-0 w-full h-full">
         {/* Loading placeholder */}
-        {!isVideoLoaded && (
+        {!isLoaded && (
           <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center">
             <div className="text-center space-y-4">
               <div className="w-16 h-16 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto"></div>
@@ -47,60 +38,22 @@ const HeroSection = () => {
           </div>
         )}
 
-        {/* YouTube Video Embed - Optimized for Shorts on Desktop */}
-        <iframe
-          id="hero-video"
-          src={videoUrl}
-          className={`transition-opacity duration-1000 ${
-            isVideoLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            // For YouTube Shorts (9:16 aspect ratio) on desktop
-            // Scale up to fill height and center horizontally
-            width: '177.78vh', // Height * (16/9) to get proper width for 16:9 scaling
-            height: '100vh',
-            minWidth: '100vw', // Ensure it covers full width
-            minHeight: '177.78vw', // Width * (16/9) for minimum height
-            transform: 'translate(-50%, -50%) scale(1.2)', // Scale up to crop and zoom
-            transformOrigin: 'center center',
-            zIndex: 1,
-            objectFit: 'cover'
-          }}
-          onLoad={() => setIsVideoLoaded(true)}
-        />
+        {/* Image Carousel */}
+        <div className="relative w-full h-full">
+          {images.map((image, index) => (
+            <img
+              key={index}
+              src={image}
+              alt={`Hero ${index + 1}`}
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+                index === currentImageIndex ? 'opacity-100' : 'opacity-0'
+              }`}
+              onLoad={() => setIsLoaded(true)}
+            />
+          ))}
+        </div>
 
-        {/* Alternative styling for better mobile responsiveness */}
-        <style jsx>{`
-          @media (max-width: 768px) {
-            #hero-video {
-              width: 100vw !important;
-              height: 100vh !important; /* Full viewport height on mobile */
-              min-width: 100vw !important;
-              min-height: 100vh !important;
-              transform: translate(-50%, -50%) scale(1.2) !important; /* Scale up to fill completely */
-              object-fit: cover !important;
-            }
-          }
-          
-          @media (min-width: 769px) {
-            #hero-video {
-              /* Desktop: Scale the short video to fill width, crop top/bottom */
-              width: 100vw !important;
-              height: 177.78vw !important; /* This makes it tall enough */
-              min-width: 100vw !important;
-              min-height: 100vh !important;
-              transform: translate(-50%, -50%) !important;
-            }
-          }
-        `}</style>
-
-        {/* Video Overlay */}
+        {/* Image Overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-black/20 z-10" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10" />
       </div>
@@ -115,6 +68,22 @@ const HeroSection = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Image Navigation Dots */}
+      <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
+        {images.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrentImageIndex(index)}
+            className={`w-3 h-3 rounded-full transition-all duration-300 ${
+              index === currentImageIndex 
+                ? 'bg-accent w-8' 
+                : 'bg-white/50 hover:bg-white/80'
+            }`}
+            aria-label={`Go to image ${index + 1}`}
+          />
+        ))}
       </div>
 
       {/* Bottom Center Button */}
