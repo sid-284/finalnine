@@ -141,14 +141,7 @@ const FilterSidebar = ({ isOpen, onClose, filters, onFilterChange }) => {
                     {/* Size Chart Button for Size Section */}
                     {section.id === 'size' && (
                       <div className="mt-3 pt-3 border-t border-border">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSizeChartOpen(true)}
-                          className="w-full justify-center text-accent hover:text-accent/80"
-                        >
-                          View Size Chart
-                        </Button>
+                        
                       </div>
                     )}
                   </div>

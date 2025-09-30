@@ -277,13 +277,7 @@ const ProductInfo = ({ product }) => {
       <div>
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-medium text-foreground">Size</h3>
-          <button
-            onClick={() => setShowSizeChart(true)}
-            className="text-sm text-accent hover:text-accent/80 underline flex items-center space-x-1 transition-colors duration-300"
-          >
-            <Icon name="Ruler" size={14} />
-            <span>Size Guide</span>
-          </button>
+        
         </div>
         
         {/* Direct size buttons instead of dropdown */}
@@ -404,10 +398,7 @@ const ProductInfo = ({ product }) => {
       
 
       {/* Size Chart Modal */}
-      <SizeChartModal 
-        open={showSizeChart} 
-        onClose={() => setShowSizeChart(false)} 
-      />
+      
     </div>
   );
 };
