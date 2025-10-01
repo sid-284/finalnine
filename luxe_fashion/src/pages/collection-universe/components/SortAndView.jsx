@@ -116,14 +116,7 @@ const SortAndView = ({
           <p className="text-sm text-muted-foreground">
             {totalProducts} {totalProducts === 1 ? 'product' : 'products'}
           </p>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setSizeChartOpen(true)}
-            className="text-accent hover:text-accent/80"
-          >
-            Size Chart
-          </Button>
+          
         </div>
       </div>
 
