@@ -67,15 +67,16 @@ const SortAndView = ({
             </div>
             
             {/* Mobile Sort */}
-            <div className="sm:hidden">
-              <Button
-                variant="outline"
-                size="sm"
-                iconName="ArrowUpDown"
-                iconPosition="left"
-              >
-                Sort
-              </Button>
+            <div className="sm:hidden w-40">
+              <Select
+                options={sortOptions}
+                value={sortBy}
+                onChange={onSortChange}
+                placeholder="Sort by"
+                className="w-full"
+                label="Sort"
+                id="mobile-sort-select"
+              />
             </div>
 
             {/* View Mode Toggle */}
