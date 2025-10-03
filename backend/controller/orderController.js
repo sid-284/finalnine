@@ -267,6 +267,150 @@ export const verifyRazorpay = async (req,res) =>{
 }
 
 
+// Guest checkout - create Razorpay order without auth
+export const placeOrderRazorpayGuest = async (req, res) => {
+    const requestId = `rzp_guest_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
+    try {
+        console.log(`[${requestId}] placeOrderRazorpayGuest - start`);
+        const { items, amount, address } = req.body;
+        console.log(`[${requestId}] placeOrderRazorpayGuest - payload`, {
+            itemsCount: Array.isArray(items) ? items.length : 0,
+            amount,
+            hasAddress: !!address
+        });
+
+        if (!items || !amount || !address) {
+            console.log(`[${requestId}] placeOrderRazorpayGuest - missing fields`);
+            return res.status(400).json({ message: 'Missing required fields: items, amount, or address' });
+        }
+
+        const orderData = {
+            items,
+            amount,
+            userId: null,
+            address,
+            paymentMethod: 'Razorpay',
+            payment: false,
+            date: Date.now(),
+            status: 'Pending'
+        };
+
+        const newOrder = new Order(orderData);
+        await newOrder.save();
+        console.log(`[${requestId}] placeOrderRazorpayGuest - DB order saved: ${newOrder._id}`);
+
+        const numericAmount = Number(amount);
+        if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+            console.log(`[${requestId}] placeOrderRazorpayGuest - invalid amount`, { numericAmount });
+            return res.status(400).json({ message: 'Invalid amount' });
+        }
+        const paiseAmount = Math.round(numericAmount * 100);
+
+        const { mode, key_id, key_secret } = resolveRazorpayKeys();
+        if (!mode || !key_id || !key_secret) {
+            console.log(`[${requestId}] placeOrderRazorpayGuest - missing payment configuration`);
+            return res.status(500).json({ message: 'Payment configuration missing' });
+        }
+
+        const rp = new razorpay({ key_id, key_secret });
+        const options = {
+            amount: paiseAmount,
+            currency: 'INR',
+            receipt: newOrder._id.toString(),
+            payment_capture: 1,
+            notes: {
+                order_id: newOrder._id.toString(),
+                type: 'guest'
+            }
+        };
+
+        try {
+            const razorpayOrder = await rp.orders.create(options);
+            await Order.findByIdAndUpdate(newOrder._id, { razorpayOrderId: razorpayOrder.id });
+            return res.status(200).json({
+                id: razorpayOrder.id,
+                amount: razorpayOrder.amount,
+                currency: razorpayOrder.currency,
+                receipt: razorpayOrder.receipt,
+                key: key_id
+            });
+        } catch (razorpayError) {
+            console.log(`[${requestId}] placeOrderRazorpayGuest - Razorpay error`, {
+                message: razorpayError?.message,
+                statusCode: razorpayError?.statusCode,
+                description: razorpayError?.error?.description,
+                code: razorpayError?.error?.code
+            });
+            try {
+                await Order.findByIdAndDelete(newOrder._id);
+            } catch {}
+            return res.status(401).json({ message: 'Failed to create payment order', details: razorpayError?.error?.description || razorpayError?.message || 'Authentication failed' });
+        }
+    } catch (error) {
+        console.log(`[${requestId}] placeOrderRazorpayGuest - General error:`, error.message);
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+// Guest checkout - verify Razorpay without auth
+export const verifyRazorpayGuest = async (req, res) => {
+    const requestId = `rzpver_guest_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
+    try {
+        console.log(`[${requestId}] verifyRazorpayGuest - start`);
+        const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+        if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+            console.log(`[${requestId}] verifyRazorpayGuest - missing fields`);
+            return res.status(400).json({ message: 'Payment verification failed' });
+        }
+
+        const { key_secret } = resolveRazorpayKeys();
+        if (!key_secret) {
+            console.log(`[${requestId}] verifyRazorpayGuest - missing secret`);
+            return res.status(500).json({ message: 'Payment configuration missing' });
+        }
+
+        const body = `${razorpay_order_id}|${razorpay_payment_id}`;
+        const expectedSignature = crypto
+            .createHmac('sha256', key_secret)
+            .update(body)
+            .digest('hex');
+        if (expectedSignature !== razorpay_signature) {
+            console.log(`[${requestId}] verifyRazorpayGuest - invalid signature`);
+            return res.status(400).json({ message: 'Invalid payment signature' });
+        }
+
+        const { key_id, key_secret: ks } = resolveRazorpayKeys();
+        const rp = new razorpay({ key_id, key_secret: ks });
+        let orderInfo;
+        try {
+            orderInfo = await rp.orders.fetch(razorpay_order_id);
+        } catch (e) {
+            console.log(`[${requestId}] verifyRazorpayGuest - Failed to fetch order from Razorpay:`, e?.message);
+            return res.status(500).json({ message: 'Payment verification failed (lookup)' });
+        }
+
+        const dbOrderId = orderInfo?.receipt;
+        if (!dbOrderId) {
+            console.log(`[${requestId}] verifyRazorpayGuest - missing receipt in order`);
+            return res.status(500).json({ message: 'Payment verification failed (missing receipt)' });
+        }
+
+        await Order.findByIdAndUpdate(dbOrderId, {
+            payment: true,
+            razorpayPaymentId: razorpay_payment_id,
+            razorpaySignature: razorpay_signature,
+            paymentVerifiedAt: new Date(),
+            status: 'Paid'
+        });
+
+        return res.status(200).json({ message: 'Payment verified successfully' });
+    } catch (error) {
+        console.log(`[${requestId}] verifyRazorpayGuest - General error:`, error.message);
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+
 
 
 

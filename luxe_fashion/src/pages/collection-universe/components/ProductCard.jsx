@@ -80,11 +80,7 @@ const ProductCard = ({ product, viewMode, index }) => {
     console.log('Event target tag:', e?.target?.tagName, 'classes:', e?.target?.className);
     console.log('Event currentTarget tag:', e?.currentTarget?.tagName);
     
-    if (!user) {
-      console.log('User not logged in, redirecting to login');
-      navigate('/login');
-      return;
-    }
+    // Allow guests to add to cart
 
     // Check if product is out of stock
     if (product.outOfStock) {

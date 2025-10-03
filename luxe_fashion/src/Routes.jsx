@@ -30,11 +30,7 @@ const Routes = () => {
         <Route path="/homepage" element={<Homepage />} />
         <Route path="/product" element={<ProductDetail />} />
         <Route path="/product-detail" element={<ProductDetail />} />
-        <Route path="/checkout-experience" element={
-          <ProtectedRoute>
-            <CheckoutExperience />
-          </ProtectedRoute>
-        } />
+        <Route path="/checkout-experience" element={<CheckoutExperience />} />
         <Route path="/collection-universe" element={<CollectionUniverse />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />

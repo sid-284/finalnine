@@ -17,7 +17,7 @@ const loadRazorpayScript = () => {
   });
 };
 
-const PaymentSection = ({ onPaymentSubmit, orderTotal, cartItems, shippingAddress }) => {
+const PaymentSection = ({ onPaymentSubmit, orderTotal, cartItems, shippingAddress, isGuest }) => {
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [cardData, setCardData] = useState({
     name: '',
@@ -68,15 +68,17 @@ const PaymentSection = ({ onPaymentSubmit, orderTotal, cartItems, shippingAddres
     // Debug: Check if user is authenticated
     console.log('PaymentSection - Starting payment process...');
     
-    // Debug: Check authentication status
-    try {
-      const authCheck = await apiFetch('/user/getcurrentuser');
-      console.log('Authentication check successful:', authCheck);
-    } catch (authError) {
-      console.error('Authentication check failed:', authError);
-      setErrorMsg('Authentication failed. Please log in again.');
-      setLoading(false);
-      return;
+    // Skip authentication check for guest checkout
+    if (!isGuest) {
+      try {
+        const authCheck = await apiFetch('/user/getcurrentuser');
+        console.log('Authentication check successful:', authCheck);
+      } catch (authError) {
+        console.error('Authentication check failed:', authError);
+        setErrorMsg('Authentication failed. Please log in again.');
+        setLoading(false);
+        return;
+      }
     }
     
     // Debug: Check Razorpay key configuration
@@ -107,7 +109,7 @@ const PaymentSection = ({ onPaymentSubmit, orderTotal, cartItems, shippingAddres
       console.log('Making API call to:', '/order/razorpay');
       console.log('Request body:', JSON.stringify(orderData, null, 2));
       
-      const order = await apiFetch('/order/razorpay', {
+      const order = await apiFetch(isGuest ? '/order/razorpay-guest' : '/order/razorpay', {
         method: 'POST',
         body: JSON.stringify(orderData),
       });
@@ -155,7 +157,7 @@ const PaymentSection = ({ onPaymentSubmit, orderTotal, cartItems, shippingAddres
         handler: async function (response) {
           try {
             console.log('Payment successful, response:', response);
-            await apiFetch('/order/verifyrazorpay', {
+            await apiFetch(isGuest ? '/order/verifyrazorpay-guest' : '/order/verifyrazorpay', {
               method: 'POST',
               body: JSON.stringify({ 
                 razorpay_order_id: response.razorpay_order_id,

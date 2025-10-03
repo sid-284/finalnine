@@ -196,6 +196,7 @@ const CheckoutExperience = () => {
                   orderTotal={calculateTotal()}
                   cartItems={cart}
                   shippingAddress={{ address: '123 Main Street', city: 'New York' }}
+                  isGuest={isGuest}
                 />
               )}
             </div>

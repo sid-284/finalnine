@@ -81,10 +81,7 @@ const ProductInfo = ({ product }) => {
   const decreaseQuantity = () => setQuantity(prev => Math.max(1, prev - 1));
 
   const handleAddToCart = () => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
+    // Allow guests to add to cart
 
     if (!selectedSize) {
       setShowSuccessMsg('Please select a size');
@@ -124,6 +121,7 @@ const ProductInfo = ({ product }) => {
     }
 
     if (!user) {
+      // Guests can still manage wishlist only when authenticated; keep redirect here if necessary
       navigate('/login');
       return;
     }

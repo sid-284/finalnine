@@ -174,11 +174,7 @@ const Header = () => {
               size="icon"
               className="text-muted-foreground hover:text-accent hover:bg-accent/10 transition-all duration-300 rounded-full relative group"
               onClick={() => {
-                if (user) {
-                  navigate('/checkout-experience');
-                } else {
-                  navigate('/login');
-                }
+                navigate('/checkout-experience');
               }}
             >
               <Icon name="ShoppingBag" size={20} className="group-hover:scale-110 transition-transform duration-300" />
@@ -316,11 +312,7 @@ const Header = () => {
               size="icon"
               className="text-muted-foreground hover:text-accent hover:bg-accent/10 transition-all duration-300 rounded-full relative group"
               onClick={() => {
-                if (user) {
-                  navigate('/checkout-experience');
-                } else {
-                  navigate('/login');
-                }
+                navigate('/checkout-experience');
               }}
             >
               <Icon name="ShoppingBag" size={20} className="group-hover:scale-110 transition-transform duration-300" />
