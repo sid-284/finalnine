@@ -60,8 +60,8 @@ const Footer = () => {
     <footer className="bg-foreground text-background">
       {/* Newsletter Section */}
       <div className="border-b border-background/10">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="max-w-2xl mx-auto text-center space-y-6">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="max-w-2xl mx-auto text-center space-y-4">
             <div className="space-y-2">
               <h3 className="text-2xl font-semibold text-white">
                 Stay in Style
@@ -76,23 +76,16 @@ const Footer = () => {
       </div>
 
       {/* Main Footer Content */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
           {/* Brand Section */}
-          <div className="lg:col-span-2 space-y-6">
-            <Link to="/homepage" className="flex items-center space-x-2">
-              <img 
-                src="/assets/images/logos/9ty-two-logo.svg" 
-                alt="9ty two logo" 
-                className="h-30 w-auto filter brightness-0 invert"
-              />
-            </Link>
+          <div className="lg:col-span-2 space-y-4">
             
             <p className="text-background/80 leading-relaxed max-w-sm">
               Where craftsmanship meets contemporary design. Discover timeless pieces that transcend seasons and trends.
             </p>
             
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="flex items-center space-x-2 text-sm text-background/80">
                 <Icon name="MapPin" size={16} />
                 <span>Kerala, India</span>
@@ -133,12 +126,12 @@ const Footer = () => {
 
       {/* Bottom Footer */}
       <div className="border-t border-background/10">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col lg:flex-row items-center justify-between space-y-6 lg:space-y-0">
             {/* Copyright */}
             <div className="text-sm text-background/60 text-center lg:text-left">
               <p>© {currentYear} 9ty two. All rights reserved.</p>
-              <div className="flex items-center justify-center lg:justify-start space-x-4 mt-2">
+              <div className="flex items-center justify-center lg:justify-start space-x-4 mt-1">
                 <Link to="/collection-universe" className="hover:text-accent transition-colors duration-200">
                   Privacy Policy
                 </Link>
