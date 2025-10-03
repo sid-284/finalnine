@@ -173,10 +173,7 @@ const OrderSummary = ({ cartItems, shippingMethod, onShippingChange, promoCode, 
           <Icon name="RotateCcw" size={16} className="text-success" />
           <span>Free returns within 7 days</span>
         </div>
-        <div className="flex items-center gap-2">
-          <Icon name="Shield" size={16} className="text-success" />
-          <span>2-year warranty included</span>
-        </div>
+        
         <div className="flex items-center gap-2">
           <Icon name="Headphones" size={16} className="text-success" />
           <span>24/7 customer support</span>
